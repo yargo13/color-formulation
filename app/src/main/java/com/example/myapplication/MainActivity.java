@@ -16,13 +16,10 @@ public class MainActivity extends AppCompatActivity {
     double Rb[] = new double[31];
     double S[][] = new double[21][31];
     double K[][] = new double[21][31];
-    double S2[][] = new double[21][31];
-    double K2[][] = new double[21][31];
     double K_cromossomo[][] = new double[100][31];
     double S_cromossomo[][] = new double[100][31];
     double a[][] = new double[21][31];
     double b[][] = new double[21][31];
-    double Ct[][] = new double[21][31];
     double ESPESSURA_AMOSTRA = 2.0;//em milímetros
     //    double ESPESSURA_AMOSTRA = 1.05;//em milímetros
     double R_linha[][] = new double[100][31];
@@ -51,11 +48,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);*/
         popular_variaveis();
         calculo_curva_espectral();
-
         criacao_populacao();
-
-        double [] cromossomo = {0,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        double fitting = calculo_fitting_total_um_cromossomo(cromossomo);
 
         for (int repet = 0; repet < 100; repet++) {
             calculo_k_e_s_mistura();
@@ -144,38 +137,6 @@ public class MainActivity extends AppCompatActivity {
         return cromossomo;
     }
 
-    //----------------------------------------------------------------------------------------------
-    // Returns modified n.
-    public static double modifyBit(long n,
-                                   long p,
-                                   long b)
-    {
-        long mask = 1 << p;
-        return (n & ~mask) |
-                ((b << p) & mask);
-    }
-
-    //----------------------------------------------------------------------------------------------
-    public double calculo_fitting(LAB cores_LAB) {
-        //vermelho
-        double L = 53.23;
-        double A = 80.11;
-        double B = 67.22;
-        double fitting = 0;
-
-        if (cores_LAB.getL() < 0 || cores_LAB.getL() > 100 ||
-                cores_LAB.getA() < -128 || cores_LAB.getA() > 128 ||
-                cores_LAB.getB() < -128 || cores_LAB.getB() > 128) {
-            fitting = 0;
-        }
-        else {
-            fitting = Math.sqrt(Math.pow(cores_LAB.getL() - L, 2) + Math.pow(cores_LAB.getA() - A, 2) + Math.pow(cores_LAB.getB() - B, 2));
-
-            fitting = 1 / (fitting - 0.01);
-        }
-
-        return fitting;
-    }
 
     //----------------------------------------------------------------------------------------------
     public void calculo_fitting() {
@@ -195,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
                 fitting[cromossomo] = 1 / (fitting[cromossomo] - 0.01);
             }
         }
+
+        return;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -202,10 +165,11 @@ public class MainActivity extends AppCompatActivity {
     public void criacao_populacao() {
         for (int n = 0; n < 100; n++) {
             for (int colorante = 0; colorante < 20; colorante++) {
-//            for (int colorante = 0; colorante < 11; colorante++) {
-                gene[n][colorante] = Math.abs((Math.random() * 100));//minimo 3 max 200 - variavel de 8 bits, tipo byte? (vai ser considerada número?
-                // jogando para 0,5%
-                gene[n][colorante] *= 0.0005;
+                // Mínimo de 0.00001, máximo de 0.003
+                gene[n][colorante] = (Math.random() * 0.003);
+                if (gene[n][colorante] < 0.0001) {
+                    gene[n][colorante] = 0;
+                }
             }
         }
     }
@@ -213,11 +177,6 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
 
     public void calculo_curva_espectral() {
-        double reflectancia_infinita[][] = new double[21][31];
-/*
-        double S[][] = new double[20][31];
-        double K[][] = new double[20][31];
-*/
 
         for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
             Rp[lambda] /= 100;
@@ -236,45 +195,23 @@ public class MainActivity extends AppCompatActivity {
         Rsb = correcao_R(Rsb);
         R_inf = correcao_R(R_inf);
 
-        double X_espessura_infinita[][] = new double[21][31];
         double arc_cotgh = 0;
         int pigmento_silicone = 21;
 
-
         for (int pigmento = 0; pigmento < 21; pigmento++) {
             for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
-                /*a[pigmento][lambda] =*/
-                double dif = R_inf[pigmento][lambda]-Rsp[pigmento][lambda];
-                //--------------calculando a e b com rsb e rsp------------------//
-//               a[pigmento][lambda] = (Rsp[pigmento][lambda] - Rsb[pigmento][lambda] - Rp[lambda] + Rb[lambda] -
-//                        Rsp[pigmento][lambda] * Rsb[pigmento][lambda] * Rp[lambda] + Rsp[pigmento][lambda] * Rsb[pigmento][lambda] * Rb[lambda] +
-//                        Rsp[pigmento][lambda] * Rp[lambda] * Rb[lambda] - Rsb[pigmento][lambda] * Rp[lambda] * Rb[lambda])
-//                        / (2.0 * (Rsp[pigmento][lambda] * Rb[lambda] - Rsb[pigmento][lambda] * Rp[lambda]));
-//
-//                b[pigmento][lambda] = Math.sqrt(Math.pow(a[pigmento][lambda], 2.0) - 1.0);
-                //--------------------------------------------------------------------------//
 
                 //-------------calculando a e b com infinito----------------//
                 a[pigmento][lambda] = 0.5*(1/R_inf[pigmento][lambda] + R_inf[pigmento][lambda]);
-                b[pigmento][lambda] = a[pigmento][lambda] - R_inf[pigmento][lambda];
+                b[pigmento][lambda] = Math.sqrt(a[pigmento][lambda]*a[pigmento][lambda] - 1);
                 //--------------------------------------------------------//
 
-                reflectancia_infinita[pigmento][lambda] = a[pigmento][lambda] - b[pigmento][lambda];
-
-                //-------------considerando apenas Rb e Rsb --------------------------------------------//
-//                arc_cotgh = (a[pigmento][lambda] * Rb[lambda] + a[pigmento][lambda] * Rsb[pigmento][lambda] -
-//                    Rsb[pigmento][lambda] * Rb[lambda] - 1.0) / (b[pigmento][lambda] * Rb[lambda] - b[pigmento][lambda] * Rsb[pigmento][lambda]);
-
-                //-------------considerando apenas Rp e Rsp --------------------------------------------//
-//                arc_cotgh = (a[pigmento][lambda] * Rp[lambda] + a[pigmento][lambda] * Rsp[pigmento][lambda] -
-//                        Rsp[pigmento][lambda] * Rp[lambda] - 1.0) / (b[pigmento][lambda] * Rp[lambda] - b[pigmento][lambda] * Rsp[pigmento][lambda]);
-
-                //--------------considerando a refletancia do fundo preto zero (Rp = 0) ---------------------
-//               a[pigmento][lambda] = 0.5*(Rsb[pigmento][lambda] + (Rsp[pigmento][lambda] - Rsb[pigmento][lambda] + Rb[lambda])/(Rsp[pigmento][lambda]*Rb[lambda]));
-//               b[pigmento][lambda] = Math.sqrt(Math.pow(a[pigmento][lambda], 2.0) - 1.0);
-
+                /*
                 arc_cotgh = (1.0 - a[pigmento][lambda] * Rsp[pigmento][lambda]) /
                         (b[pigmento][lambda] * Rsp[pigmento][lambda]);
+                 */
+                arc_cotgh = (1.0 - a[pigmento][lambda] * (Rsb[pigmento][lambda] + Rb[lambda]) + Rsb[pigmento][lambda]*Rb[lambda]) /
+                        (b[pigmento][lambda] * (Rsb[pigmento][lambda] - Rb[lambda]));
                 //----------------------------------------------------------------------------------
 
                 arc_cotgh = arc_cotgh(arc_cotgh);
@@ -283,47 +220,24 @@ public class MainActivity extends AppCompatActivity {
 
                 K[pigmento][lambda] = S[pigmento][lambda] * (a[pigmento][lambda] - 1.0);
 
-                if (Math.abs(Rp[lambda] - Rsp[pigmento][lambda]) > Math.abs(Rb[lambda] - Rsb[pigmento][pigmento])) {
-                    Ct[pigmento][lambda] = (Rp[lambda] * Rsp[pigmento][lambda] + 1.0 - a[pigmento][lambda] * (Rp[lambda] + Rsp[pigmento][lambda])) /
-                            ((Rp[lambda] - Rsp[pigmento][lambda]) * b[pigmento][lambda]);
-                } else {
-                    Ct[pigmento][lambda] = (Rb[lambda] * Rsb[pigmento][lambda] + 1.0 - a[pigmento][lambda] * (Rb[lambda] + Rsb[pigmento][lambda])) /
-                            ((Rb[lambda] - Rsb[pigmento][lambda]) * b[pigmento][lambda]);
-                }
-
-                if (Ct[pigmento][lambda] < 1){
-                    S2[pigmento][lambda] = (Math.log(1.0 + Ct[pigmento][lambda]) - Math.log(Ct[pigmento][lambda] - 1.0)) / (2.0 * b[pigmento][lambda] * ESPESSURA_AMOSTRA);
-                    K2[pigmento][lambda] = S2[pigmento][lambda] * (a[pigmento][lambda] - 1.0);
-//                    S2[pigmento][lambda] = 0.0;
-//                    K2[pigmento][lambda] = 0.0;
-                }
-                else {
-                    S2[pigmento][lambda] = (Math.log(1.0 + Ct[pigmento][lambda]) - Math.log(Ct[pigmento][lambda] - 1.0)) / (2.0 * b[pigmento][lambda] * ESPESSURA_AMOSTRA);
-                    K2[pigmento][lambda] = S2[pigmento][lambda] * (a[pigmento][lambda] - 1.0);
-                }
-                /* se pigmento (de 0 a 8) multiplica pela concentração 1%, se for flocagem (de 9 a 19) multiplica pela concentração 2%*/
-
-                if (pigmento < 9) {
-                    S[pigmento][lambda] /= 0.0099;
-                    K[pigmento][lambda] /= 0.0099;
-                    S2[pigmento][lambda] /= 0.0099;
-                    K2[pigmento][lambda] /= 0.0099;
-                } else if (pigmento <= 19) {
-                    S[pigmento][lambda] /= 0.0196;
-                    K[pigmento][lambda] /= 0.0196;
-                    S2[pigmento][lambda] /= 0.0196;
-                    K2[pigmento][lambda] /= 0.0196;
-                }
-
-//                arc_cotgh = (1.0 - 0.999 * a[pigmento][lambda] * reflectancia_infinita[pigmento][lambda]) /
-//                        (0.999 * b[pigmento][lambda] * reflectancia_infinita[pigmento][lambda]);
-//
-//                arc_cotgh = arc_cotgh(arc_cotgh);
-//
-//                X_espessura_infinita[pigmento][lambda] = 1 / (b[pigmento][lambda] * S[pigmento][lambda]) * arc_cotgh;
                 if (Double.isNaN(K[pigmento][lambda]) || Double.isNaN(S[pigmento][lambda])) {
                     K[pigmento][lambda] = 0;
                     S[pigmento][lambda] = 0;
+                }
+
+            }
+        }
+
+        // Itera por todos os pigmentos tirando o silicone fazendo K = (K - K0)/c
+        for (int pigmento = 0; pigmento < 20; pigmento++) {
+            for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
+                /* se pigmento (de 0 a 8) multiplica pela concentração 1%, se for flocagem (de 9 a 19) multiplica pela concentração 2%*/
+                if (pigmento < 9) {
+                    S[pigmento][lambda] = (S[pigmento][lambda] - S[20][lambda])/0.0099;
+                    K[pigmento][lambda] = (K[pigmento][lambda] - K[20][lambda])/0.0099;
+                } else if (pigmento <= 19) {
+                    S[pigmento][lambda] = (S[pigmento][lambda] - S[20][lambda])/0.0196;
+                    K[pigmento][lambda] = (K[pigmento][lambda] - K[20][lambda])/0.0196;
                 }
             }
         }
@@ -354,62 +268,11 @@ public class MainActivity extends AppCompatActivity {
                     K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo][pigmento];
                     S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo][pigmento];
                 }
+
+                if (K_cromossomo[cromo][lambda] < 0) K_cromossomo[cromo][lambda] = 1e-9;
+                if (S_cromossomo[cromo][lambda] < 0) S_cromossomo[cromo][lambda] = 1e-9;
             }
         }
-    }
-
-    //----------------------------------------------------------------------------------------------
-    // calculo fitting de um único cromossomo
-    public double calculo_fitting_total_um_cromossomo(double [] cromossomo) {
-        //calculo_k_e_s_mistura_novo
-        double K_cromossomo_novo[] = new double[31];
-        double S_cromossomo_novo[] = new double[31];
-
-        for (int lambda = 0; lambda < 31; lambda++) {
-            K_cromossomo_novo[lambda] = K[20][lambda];
-            S_cromossomo_novo[lambda] = S[20][lambda];
-
-            for (int pigmento = 0; pigmento < 20; pigmento++) {
-                K_cromossomo_novo[lambda] += K[pigmento][lambda] * cromossomo[pigmento];
-                S_cromossomo_novo[lambda] += S[pigmento][lambda] * cromossomo[pigmento];
-            }
-        }
-
-        //calculo_refletancia_cromossomo_novo
-        double K1 = 0.039;
-        double K2 = 0.540;
-        double refracao = 1.415; //n
-        double R[] = new double[31];
-        double a_mistura[] = new double[31];
-        double b_mistura[] = new double[31];
-        double R_linha_novo[] = new double[31];
-
-        for (int lambda = 0; lambda < 31; lambda++) {
-            //a =1+K/S
-            a_mistura[lambda] = 1 + K_cromossomo_novo[lambda] / S_cromossomo_novo[lambda];
-
-            //b =(a2 −1)1/2
-            b_mistura[lambda] = Math.sqrt(Math.pow(a_mistura[lambda], 2) - 1);
-
-
-            //considerando Rp = 0 - como na formula inicial
-            R[lambda] = 1 / (a_mistura[lambda]  + b_mistura[lambda] *
-                    cotgh(b_mistura[lambda] * S_cromossomo_novo[lambda] * ESPESSURA_AMOSTRA));
-
-
-            //R’ = (1 − k1)(1 − k2)R / (1 − k2R)
-            R_linha_novo[lambda] = ((1 - K1) * (1 - K2) * R[lambda]) /
-                    (1 - K2 * R[lambda]);
-        }
-
-        //cromossomo_para_LAB_novo
-        XYZSet novo_set = new XYZSet();
-        LAB cores_LAB_novo = new LAB();
-        novo_set.spectrumToXYZ(R_linha_novo);
-        novo_set.XYZtoLAB();
-        cores_LAB_novo  = novo_set.getLAB();
-
-        return calculo_fitting(cores_LAB_novo);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -428,14 +291,6 @@ public class MainActivity extends AppCompatActivity {
 
                 //b =(a2 −1)1/2
                 b_mistura[cromossomo][lambda] = Math.sqrt(Math.pow(a_mistura[cromossomo][lambda], 2) - 1);
-
-
-                //R = (1 − Rg(a − b ctgh[bSX])) / (a − Rg + b ctgh[bSx]) --- considerando Rg sendo Rp
-                //usando Rp
-//                R[cromossomo][lambda] = (1 - Rp[lambda] * (a_mistura[cromossomo][lambda] - b_mistura[cromossomo][lambda] *
-//                        cotgh(b_mistura[cromossomo][lambda] * S_cromossomo[cromossomo][lambda] * ESPESSURA_AMOSTRA))) /
-//                        (a_mistura[cromossomo][lambda] - Rp[lambda] + b_mistura[cromossomo][lambda] *
-//                                cotgh(b_mistura[cromossomo][lambda] * S_cromossomo[cromossomo][lambda] * ESPESSURA_AMOSTRA));
 
                 //considerando Rp = 0 - como na formula inicial
                 R[cromossomo][lambda] = 1 / (a_mistura[cromossomo][lambda]  + b_mistura[cromossomo][lambda] *
@@ -3923,8 +3778,8 @@ public class MainActivity extends AppCompatActivity {
             Rsb[20][29] = 12.73;
             Rsb[20][30] = 12.74;
 
-            //        Rb[0] = 13.93;
-            Rb[0] = 84.085;
+            Rb[0] = 13.93;
+            //Rb[0] = 84.085;
             Rb[1] = 15.57;
             Rb[2] = 16.21;
             Rb[3] = 15.48;
@@ -3956,8 +3811,8 @@ public class MainActivity extends AppCompatActivity {
             Rb[29] = 14.50;
             Rb[30] = 14.56;
 
-            //        Rsp[0][0] = 10.67;
-            Rsp[0][0] = 27.938;
+            Rsp[0][0] = 10.67;
+            //Rsp[0][0] = 27.938;
             Rsp[0][1] = 10.33;
             Rsp[0][2] = 10.24;
             Rsp[0][3] = 9.82;

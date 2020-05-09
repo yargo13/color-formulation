@@ -64,7 +64,7 @@ public class XYZSet {
     };
 
     /**
-     * Espectral density for the D50 illuminant
+     * Spectral density for the D50 illuminant
      */
     static double D50[] = {
             49.25, 56.45, 59.97, 57.76,
@@ -77,6 +77,18 @@ public class XYZSet {
             99.19, 87.43, 91.66
     };
 
+    //Spectral density for the D65 illuminant
+    static double D65[] = {
+            82.78, 91.51, 93.45, 86.70,
+            104.88, 117.03, 117.83, 114.87,
+            115.94, 108.82, 109.36, 107.81,
+            104.79, 107.69, 104.41, 104.05,
+            100.00, 96.33, 95.79, 88.68, 90.00,
+            89.59, 87.69, 83.28, 83.69, 80.02,
+            80.21, 82.27, 78.27, 69.71,	71.60
+    };
+
+    //
     /**
      * Constructs a converter with no arguments.
      */
@@ -94,14 +106,16 @@ public class XYZSet {
         X = 0.f;
         Y = 0.f;
         Z = 0.f;
-        // Reference for D50 10º
-        double N = 1140.0685;
+        // Reference for D50 10degrees
+//        double N = 1140.0685;
+        // D65 10graus
+        double N = 1161.9469;
 
         // integrate
         for( int wl = 0; wl < 31; wl++) {
-            X += data[wl] * Px[wl] * D50 [wl];
-            Y += data[wl] * Py[wl] * D50 [wl];
-            Z += data[wl] * Pz[wl] * D50 [wl];
+            X += data[wl] * Px[wl] * D65 [wl];
+            Y += data[wl] * Py[wl] * D65[wl];
+            Z += data[wl] * Pz[wl] * D65 [wl];
         }
         X /= N;
         Y /= N;
@@ -139,7 +153,7 @@ public class XYZSet {
     }
 
     /*
-    *
+     *
      */
     public double f(double x){
         if(x > 0.008856){

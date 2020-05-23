@@ -11,6 +11,7 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS = 1000;
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
+    double MUTATION_RATE = 0.2;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
@@ -104,9 +105,16 @@ public class MainActivity extends AppCompatActivity {
 
             //transferindo valores para array genes_novos
             Cromossome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
-
             index_genes_novo += 2;
-        }//genes_novo populado
+        }
+
+        // Causa mutações
+        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)*9);
+        for (int i=0; i<num_mutation; i++){
+            int cromossomo_mutacao = (int) (Math.random() * QTDE_CROMOSSOMOS);
+            genes_novo[cromossomo_mutacao].mutate();
+        }
+
 
         System.arraycopy(genes_novo,0,gene,0,gene.length);
     }

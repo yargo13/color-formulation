@@ -11,6 +11,7 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS = 1000;
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
+    int PIGMENTO_SILICONE = 20;
     double MUTATION_RATE = 0.2;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
@@ -221,8 +222,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // O pigmento de silicone é inválido para se alterar
+        invalid_pigments[PIGMENTO_SILICONE] = true;
+
         // Itera por todos os pigmentos tirando o silicone fazendo K = (K - K0)/c
-        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS-1; pigmento++) {
+        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
+            if (invalid_pigments[pigmento]) continue;
             for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
                 /* se pigmento (de 0 a 8) multiplica pela concentração 1%, se for flocagem (de 9 a 19) multiplica pela concentração 2%*/
                 if (pigmento < 9) {

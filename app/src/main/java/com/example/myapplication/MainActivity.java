@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_LAMBDA = 31;
     double fitting[] = new double[100];
     boolean ESPECTROFOTOMETRO = true;
+    boolean invalid_pigments[] = new boolean[21];
 
 
     @Override
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         calculo_curva_espectral();
         criacao_populacao();
 
-        for (int repet = 0; repet < 100; repet++) {
+        for (int repet = 0; repet < 1000; repet++) {
             calculo_k_e_s_mistura();
             calculo_refletancia_cromossomo();
             cromossomo_para_LAB();
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             cromossomo_crossover_2 = lista_validos.get(cromossomo_crossover_2);
 
             //selecionando local do crossover aleatorio
-            int local_crossover = (int) (Math.random() * 20);
+            int local_crossover = (int) (Math.random() * 20); // Igualmente entre 0 e 19
 
             //transferindo valores para array genes_novos
             for (int index = 0; index < 21; index++) {
@@ -129,7 +130,12 @@ public class MainActivity extends AppCompatActivity {
     public double[] mutacao_novo_gene_aleatorio(double cromossomo[]) {
 
         //local da mutacao - qual gene
-        int local_mutacao = (int) (Math.random()*20);
+        boolean valid_mutation = false;
+        int local_mutacao = 0;
+        while (!valid_mutation) {
+            local_mutacao = (int) (Math.random()*20);
+            if (!invalid_pigments[local_mutacao]) valid_mutation = true;
+        }
         cromossomo[local_mutacao] = (Math.random() * 0.005);
         return cromossomo;
     }
@@ -162,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
     public void criacao_populacao() {
         for (int n = 0; n < 100; n++) {
             for (int colorante = 0; colorante < 20; colorante++) {
+                if (invalid_pigments[colorante]) continue;
                 // Mínimo de 0.00001, máximo de 0.0005
                 gene[n][colorante] = (Math.random() * 0.0005);
                 if (gene[n][colorante] < 0.0001) {
@@ -218,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
                 K[pigmento][lambda] = S[pigmento][lambda] * (a[pigmento][lambda] - 1.0);
 
                 if (Double.isNaN(K[pigmento][lambda]) || Double.isNaN(S[pigmento][lambda])) {
+                    invalid_pigments[pigmento] = true;
                     K[pigmento][lambda] = 0;
                     S[pigmento][lambda] = 0;
                 }

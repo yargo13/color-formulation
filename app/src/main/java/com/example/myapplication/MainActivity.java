@@ -8,27 +8,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    double gene[][] = new double[100][21];
-    double R_inf[][] = new double[21][31];
-    double Rsp[][] = new double[21][31];
-    double Rsb[][] = new double[21][31];
-    double Rp[] = new double[31];
-    double Rb[] = new double[31];
-    double S[][] = new double[21][31];
-    double K[][] = new double[21][31];
-    double K_cromossomo[][] = new double[100][31];
-    double S_cromossomo[][] = new double[100][31];
-    double a[][] = new double[21][31];
-    double b[][] = new double[21][31];
-    double ESPESSURA_AMOSTRA = 2.0;//em milímetros
-    //    double ESPESSURA_AMOSTRA = 1.05;//em milímetros
-    double R_linha[][] = new double[100][31];
-    LAB cores_LAB[] = new LAB[100];
+    int QTDE_CROMOSSOMOS = 1000;
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
-    double fitting[] = new double[100];
+    double gene[][] = new double[QTDE_CROMOSSOMOS][QTDE_PIGMENTOS];
+    double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double Rsb[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double Rp[] = new double[QTDE_LAMBDA];
+    double Rb[] = new double[QTDE_LAMBDA];
+    double S[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double K[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double K_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    double S_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    double a[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double b[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double ESPESSURA_AMOSTRA = 2.0;//em milímetros
+    //    double ESPESSURA_AMOSTRA = 1.05;//em milímetros
+    double R_linha[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    LAB cores_LAB[] = new LAB[QTDE_CROMOSSOMOS];
+
+    double fitting[] = new double[QTDE_CROMOSSOMOS];
     boolean ESPECTROFOTOMETRO = true;
-    boolean invalid_pigments[] = new boolean[21];
+    boolean invalid_pigments[] = new boolean[QTDE_PIGMENTOS];
 
 
     @Override
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         int tamanho_cromossomo = fitting.length;
         List<Integer> lista_validos = new ArrayList<Integer>();
         int index_genes_novo = 0;
-        double genes_novo[][] = new double[100][21];
+        double genes_novo[][] = new double[QTDE_CROMOSSOMOS][QTDE_PIGMENTOS];
         int qtde_cromossomos_invalidos = 0;
 
         // calculo media fitting
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         //crossover entre itens aleatorios
         //local do crossover tambem aleatorio
 
-        while (index_genes_novo < 100) {
+        while (index_genes_novo < QTDE_CROMOSSOMOS) {
             //selecionando cromossomos para crossover
             int cromossomo_crossover_1 = (int) (Math.random() * lista_validos.size());
             cromossomo_crossover_1 = lista_validos.get(cromossomo_crossover_1);
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             int local_crossover = (int) (Math.random() * 20); // Igualmente entre 0 e 19
 
             //transferindo valores para array genes_novos
-            for (int index = 0; index < 21; index++) {
+            for (int index = 0; index < QTDE_PIGMENTOS; index++) {
                 if (index <= local_crossover) {
                     genes_novo[index_genes_novo][index] = gene[cromossomo_crossover_1][index];
                     genes_novo[index_genes_novo + 1][index] = gene[cromossomo_crossover_2][index];
@@ -115,10 +117,10 @@ public class MainActivity extends AppCompatActivity {
 
                 //chances de 5% de ter mutação
                 if (Math.random() <= 0.05)
-                    System.arraycopy(genes_novo[index_genes_novo],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo]), 0,21);
+                    System.arraycopy(genes_novo[index_genes_novo],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo]), 0,QTDE_PIGMENTOS);
 
                 if (Math.random() <= 0.05)
-                    System.arraycopy(genes_novo[index_genes_novo+1],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo+1]), 0,21);
+                    System.arraycopy(genes_novo[index_genes_novo+1],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo+1]), 0,QTDE_PIGMENTOS);
             }
             index_genes_novo += 2;
         }//genes_novo populado
@@ -147,8 +149,8 @@ public class MainActivity extends AppCompatActivity {
         double A = 5.69;
         double B = 16.42;
 
-        for (int cromossomo = 0; cromossomo < 100; cromossomo++){
-            if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > 100 ||
+        for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++){
+            if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > QTDE_CROMOSSOMOS ||
                     cores_LAB[cromossomo].getA() < -128 || cores_LAB[cromossomo].getA() > 128 ||
                     cores_LAB[cromossomo].getB() < -128 || cores_LAB[cromossomo].getB() > 128) {
                 fitting[cromossomo] = 0;
@@ -166,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
 
     public void criacao_populacao() {
-        for (int n = 0; n < 100; n++) {
+        for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
             for (int colorante = 0; colorante < 20; colorante++) {
                 if (invalid_pigments[colorante]) continue;
                 // Mínimo de 0.00001, máximo de 0.0005
@@ -182,11 +184,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void calculo_curva_espectral() {
 
-        for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
+        for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
             Rp[lambda] /= 100;
             Rb[lambda] /= 100;
 
-            for (int pigmento = 0; pigmento < 21; pigmento++) {
+            for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
                 Rsp[pigmento][lambda] /= 100;
                 Rsb[pigmento][lambda] /= 100;
                 R_inf[pigmento][lambda] /= 100;
@@ -200,10 +202,10 @@ public class MainActivity extends AppCompatActivity {
         R_inf = correcao_R(R_inf);
 
         double arc_cotgh = 0;
-        int pigmento_silicone = 21;
+        int pigmento_silicone = QTDE_PIGMENTOS-1;
 
-        for (int pigmento = 0; pigmento < 21; pigmento++) {
-            for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
+        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
+            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
 
                 //-------------calculando a e b com infinito----------------//
                 a[pigmento][lambda] = 0.5*(1/R_inf[pigmento][lambda] + R_inf[pigmento][lambda]);
@@ -234,8 +236,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Itera por todos os pigmentos tirando o silicone fazendo K = (K - K0)/c
-        for (int pigmento = 0; pigmento < 20; pigmento++) {
-            for (int lambda = 0; lambda < 31; lambda++) /*de 400 a 700 de 10 em 10 = 31*/ {
+        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS-1; pigmento++) {
+            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
                 /* se pigmento (de 0 a 8) multiplica pela concentração 1%, se for flocagem (de 9 a 19) multiplica pela concentração 2%*/
                 if (pigmento < 9) {
                     S[pigmento][lambda] = (S[pigmento][lambda] - S[20][lambda])/0.0099;
@@ -263,8 +265,8 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     // calculo k e s por concentracao de pigmento
     public void calculo_k_e_s_mistura() {
-        for (int cromo = 0; cromo < 100; cromo++) {
-            for (int lambda = 0; lambda < 31; lambda++) {
+        for (int cromo = 0; cromo < QTDE_CROMOSSOMOS; cromo++) {
+            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
                 K_cromossomo[cromo][lambda] = K[20][lambda];
                 S_cromossomo[cromo][lambda] = S[20][lambda];
 
@@ -285,12 +287,12 @@ public class MainActivity extends AppCompatActivity {
         double K1 = 0.039;
         double K2 = 0.540;
         double refracao = 1.415; //n
-        double R[][] = new double[100][31];
-        double a_mistura[][] = new double[100][31];
-        double b_mistura[][] = new double[100][31];
+        double R[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+        double a_mistura[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+        double b_mistura[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
 
-        for (int cromossomo = 0; cromossomo < 100; cromossomo++) {
-            for (int lambda = 0; lambda < 31; lambda++) {
+        for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++) {
+            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
                 //a =1+K/S
                 a_mistura[cromossomo][lambda] = 1 + K_cromossomo[cromossomo][lambda] / S_cromossomo[cromossomo][lambda];
 
@@ -342,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     public void cromossomo_para_LAB() {
-        for (int index = 0; index < 100; index++) {
+        for (int index = 0; index < QTDE_CROMOSSOMOS; index++) {
             XYZSet novo_set = new XYZSet();
             if (verifica_R_linha(index)) {
                 novo_set.spectrumToXYZ(R_linha[index]);
@@ -355,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     public boolean verifica_R_linha(int index)
     {
-        for (int i = 0; i < 31; i++){
+        for (int i = 0; i < QTDE_LAMBDA; i++){
             if (Double.isNaN(R_linha[index][i]))
                 return false;
         }

@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
             if (fitting[index] > fitting_media){
                 lista_validos.add(index);
             } else {
-//                fitting[index] = 0;
                 qtde_cromossomos_invalidos++;
             }
         }
@@ -94,14 +93,14 @@ public class MainActivity extends AppCompatActivity {
 
         while (index_genes_novo < 100) {
             //selecionando cromossomos para crossover
-            int cromossomo_crossover_1 = (int) (Math.random() * 100 / lista_validos.size());
+            int cromossomo_crossover_1 = (int) (Math.random() * lista_validos.size());
             cromossomo_crossover_1 = lista_validos.get(cromossomo_crossover_1);
 
-            int cromossomo_crossover_2 = (int) (Math.random() * 100 / lista_validos.size());
+            int cromossomo_crossover_2 = (int) (Math.random() * lista_validos.size());
             cromossomo_crossover_2 = lista_validos.get(cromossomo_crossover_2);
 
             //selecionando local do crossover aleatorio
-            int local_crossover = (int) (Math.random() * 100 / 19);//o tamanho total é 21, mas para o crossover tem que ser 1 menos do maior index
+            int local_crossover = (int) (Math.random() * 20);
 
             //transferindo valores para array genes_novos
             for (int index = 0; index < 21; index++) {
@@ -130,10 +129,8 @@ public class MainActivity extends AppCompatActivity {
     public double[] mutacao_novo_gene_aleatorio(double cromossomo[]) {
 
         //local da mutacao - qual gene
-        int local_mutacao = (int)Math.random()*100/20;
-        cromossomo[local_mutacao] = Math.abs((Math.random() * 100));
-        // jogando para 0,5%
-        cromossomo[local_mutacao] *= 0.0005;
+        int local_mutacao = (int) (Math.random()*20);
+        cromossomo[local_mutacao] = (Math.random() * 0.005);
         return cromossomo;
     }
 
@@ -165,8 +162,8 @@ public class MainActivity extends AppCompatActivity {
     public void criacao_populacao() {
         for (int n = 0; n < 100; n++) {
             for (int colorante = 0; colorante < 20; colorante++) {
-                // Mínimo de 0.00001, máximo de 0.003
-                gene[n][colorante] = (Math.random() * 0.003);
+                // Mínimo de 0.00001, máximo de 0.0005
+                gene[n][colorante] = (Math.random() * 0.0005);
                 if (gene[n][colorante] < 0.0001) {
                     gene[n][colorante] = 0;
                 }

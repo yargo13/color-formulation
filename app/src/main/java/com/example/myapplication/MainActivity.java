@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         calculo_curva_espectral();
         criacao_populacao();
 
-        for (int repet = 0; repet < 50; repet++) {
+        for (int repet = 0; repet < 100; repet++) {
             calculo_k_e_s_mistura();
             calculo_refletancia_cromossomo();
             cromossomo_para_LAB();
@@ -70,10 +70,10 @@ public class MainActivity extends AppCompatActivity {
 
         double fitting_media = 0;
         int tamanho_cromossomo = fitting.length;
-        List<Integer> lista_validos = new ArrayList<Integer>();
+        int num_genes_mantem = 0;
         int index_genes_novo = 0;
-        Cromossome genes_novo[] = new Cromossome[QTDE_CROMOSSOMOS];
-        for (int i = 0; i<QTDE_CROMOSSOMOS; i++){
+        Cromossome genes_novo[] = new Cromossome[QTDE_CROMOSSOMOS+1];
+        for (int i = 0; i<QTDE_CROMOSSOMOS+1; i++){
             genes_novo[i] = new Cromossome();
         }
         int qtde_cromossomos_invalidos = 0;
@@ -86,10 +86,10 @@ public class MainActivity extends AppCompatActivity {
 
         // selecionando apenas os que estão acima da media
         for (int index = 0; index < tamanho_cromossomo; index++){
-            if (fitting[index] > fitting_media){
-                lista_validos.add(index);
-            } else {
-                qtde_cromossomos_invalidos++;
+            if (fitting[index] > fitting_media) {
+                genes_novo[index_genes_novo] = gene[index];
+                index_genes_novo++;
+                num_genes_mantem++;
             }
         }
 
@@ -99,28 +99,15 @@ public class MainActivity extends AppCompatActivity {
 
         while (index_genes_novo < QTDE_CROMOSSOMOS) {
             //selecionando cromossomos para crossover
-            int cromossomo_crossover_1 = (int) (Math.random() * lista_validos.size());
-            cromossomo_crossover_1 = lista_validos.get(cromossomo_crossover_1);
-
-            int cromossomo_crossover_2 = (int) (Math.random() * lista_validos.size());
-            cromossomo_crossover_2 = lista_validos.get(cromossomo_crossover_2);
+            int cromossomo_crossover_1 = (int) (Math.random() * num_genes_mantem);
+            int cromossomo_crossover_2 = (int) (Math.random() * num_genes_mantem);
 
             //transferindo valores para array genes_novos
             Cromossome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
 
-                /*
-                //chances de 5% de ter mutação
-                if (Math.random() <= 0.05)
-                    System.arraycopy(genes_novo[index_genes_novo],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo]), 0,QTDE_PIGMENTOS);
-
-                if (Math.random() <= 0.05)
-                    System.arraycopy(genes_novo[index_genes_novo+1],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo+1]), 0,QTDE_PIGMENTOS);
-
-                 */
             index_genes_novo += 2;
         }//genes_novo populado
 
-//        gene = genes_novo;//ver se está passando o ponteiro, pode dar problema?
         System.arraycopy(genes_novo,0,gene,0,gene.length);
     }
     //----------------------------------------------------------------------------------------------

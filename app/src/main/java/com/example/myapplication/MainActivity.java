@@ -11,7 +11,7 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS = 1000;
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
-    double gene[][] = new double[QTDE_CROMOSSOMOS][QTDE_PIGMENTOS];
+    Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsb[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         calculo_curva_espectral();
         criacao_populacao();
 
-        for (int repet = 0; repet < 1000; repet++) {
+        for (int repet = 0; repet < 50; repet++) {
             calculo_k_e_s_mistura();
             calculo_refletancia_cromossomo();
             cromossomo_para_LAB();
@@ -72,7 +72,10 @@ public class MainActivity extends AppCompatActivity {
         int tamanho_cromossomo = fitting.length;
         List<Integer> lista_validos = new ArrayList<Integer>();
         int index_genes_novo = 0;
-        double genes_novo[][] = new double[QTDE_CROMOSSOMOS][QTDE_PIGMENTOS];
+        Cromossome genes_novo[] = new Cromossome[QTDE_CROMOSSOMOS];
+        for (int i = 0; i<QTDE_CROMOSSOMOS; i++){
+            genes_novo[i] = new Cromossome();
+        }
         int qtde_cromossomos_invalidos = 0;
 
         // calculo media fitting
@@ -102,26 +105,18 @@ public class MainActivity extends AppCompatActivity {
             int cromossomo_crossover_2 = (int) (Math.random() * lista_validos.size());
             cromossomo_crossover_2 = lista_validos.get(cromossomo_crossover_2);
 
-            //selecionando local do crossover aleatorio
-            int local_crossover = (int) (Math.random() * 20); // Igualmente entre 0 e 19
-
             //transferindo valores para array genes_novos
-            for (int index = 0; index < QTDE_PIGMENTOS; index++) {
-                if (index <= local_crossover) {
-                    genes_novo[index_genes_novo][index] = gene[cromossomo_crossover_1][index];
-                    genes_novo[index_genes_novo + 1][index] = gene[cromossomo_crossover_2][index];
-                } else {
-                    genes_novo[index_genes_novo][index] = gene[cromossomo_crossover_2][index];
-                    genes_novo[index_genes_novo + 1][index] = gene[cromossomo_crossover_1][index];
-                }
+            Cromossome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
 
+                /*
                 //chances de 5% de ter mutação
                 if (Math.random() <= 0.05)
                     System.arraycopy(genes_novo[index_genes_novo],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo]), 0,QTDE_PIGMENTOS);
 
                 if (Math.random() <= 0.05)
                     System.arraycopy(genes_novo[index_genes_novo+1],0,mutacao_novo_gene_aleatorio(genes_novo[index_genes_novo+1]), 0,QTDE_PIGMENTOS);
-            }
+
+                 */
             index_genes_novo += 2;
         }//genes_novo populado
 
@@ -168,15 +163,11 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
 
     public void criacao_populacao() {
+        Cromossome.set_NUM_PIGMENTS(QTDE_PIGMENTOS);
+        Cromossome.set_invalid_pigments(invalid_pigments);
         for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
-            for (int colorante = 0; colorante < 20; colorante++) {
-                if (invalid_pigments[colorante]) continue;
-                // Mínimo de 0.00001, máximo de 0.0005
-                gene[n][colorante] = (Math.random() * 0.0005);
-                if (gene[n][colorante] < 0.0001) {
-                    gene[n][colorante] = 0;
-                }
-            }
+            gene[n] = new Cromossome();
+            gene[n].initialize_weights();
         }
     }
 
@@ -272,12 +263,12 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int pigmento = 0; pigmento < 20; pigmento++) {
 
-                    K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo][pigmento];
-                    S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo][pigmento];
+                    K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento]*0.00001;
+                    S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento]*0.00001;
                 }
 
-                if (K_cromossomo[cromo][lambda] < 0) K_cromossomo[cromo][lambda] = 1e-9;
-                if (S_cromossomo[cromo][lambda] < 0) S_cromossomo[cromo][lambda] = 1e-9;
+                //if (K_cromossomo[cromo][lambda] < 0) K_cromossomo[cromo][lambda] = 1e-9;
+                //if (S_cromossomo[cromo][lambda] < 0) S_cromossomo[cromo][lambda] = 1e-9;
             }
         }
     }

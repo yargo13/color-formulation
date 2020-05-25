@@ -1,11 +1,10 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS = 1000;
@@ -42,14 +41,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
-        main();
+        setContentView(R.layout.activity_main);
     }
 
     /**
      * Called when the user taps the Send button
      */
-    public void main() {
+    public void main(View view) {
         /*Intent intent = new Intent(this, DisplayMessageActivity.class);
         EditText editText = findViewById(R.id.editText);
         String message = editText.getText().toString();

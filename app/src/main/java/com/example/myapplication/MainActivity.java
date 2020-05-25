@@ -12,8 +12,12 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
     int PIGMENTO_SILICONE = 20;
-    double MUTATION_RATE = 0.2;
+    int QTDE_CROMOSSOMOS_FNAL = 5;
+    int NUM_ITERACOES = 100;
+    double MUTATION_RATE = 0.1;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
+    int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FNAL];
+    double top_fitting[] = new double[QTDE_CROMOSSOMOS_FNAL];
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsb[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
@@ -55,15 +59,29 @@ public class MainActivity extends AppCompatActivity {
         calculo_curva_espectral();
         criacao_populacao();
 
-        for (int repet = 0; repet < 100; repet++) {
+        for (int iter = 0; iter < NUM_ITERACOES; iter++) {
             calculo_k_e_s_mistura();
             calculo_refletancia_cromossomo();
             cromossomo_para_LAB();
             calculo_fitting();
-            selection();
+            if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
+            else selection();
         }
-        //exemplo de cor LAB para comparação: L = 70.50; a = 5.69; b = 16.42;
         int a = 0;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    public void selectTopCromossomes(){
+
+        for (int n=0; n<QTDE_CROMOSSOMOS_FNAL; n++){
+            for (int cromossomo=1; cromossomo<QTDE_CROMOSSOMOS; cromossomo++){
+                if (fitting[cromossomo] > fitting[top_cromossomos[n]]) {
+                    top_cromossomos[n] = cromossomo;
+                }
+            }
+            top_fitting[n] = fitting[top_cromossomos[n]];
+            fitting[top_cromossomos[n]] = 0;
+        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -119,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
 
         System.arraycopy(genes_novo,0,gene,0,gene.length);
     }
+
+
+
     //----------------------------------------------------------------------------------------------
     public double[] mutacao_novo_gene_aleatorio(double cromossomo[]) {
 
@@ -141,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         double B = 16.42;
 
         for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++){
-            if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > QTDE_CROMOSSOMOS ||
+            if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > 100 ||
                     cores_LAB[cromossomo].getA() < -128 || cores_LAB[cromossomo].getA() > 128 ||
                     cores_LAB[cromossomo].getB() < -128 || cores_LAB[cromossomo].getB() > 128) {
                 fitting[cromossomo] = 0;

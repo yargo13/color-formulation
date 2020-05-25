@@ -50,7 +50,7 @@ public class Cromossome {
         int point_mutation = 0;
         int pigment = 0;
         int bit_pigment = 0;
-        while (!is_pigment_invalid) {
+        while (is_pigment_invalid) {
             point_mutation = (int) (Math.random()*(9*NUM_PIGMENTS-1));
             pigment = point_mutation/9;
             bit_pigment = 9-(point_mutation%9 + 1);

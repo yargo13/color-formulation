@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS_FNAL = 5;
     int NUM_ITERACOES = 100;
     double MUTATION_RATE = 0.1;
+    double target_L, target_a, target_b;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FNAL];
     double top_fitting[] = new double[QTDE_CROMOSSOMOS_FNAL];
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Called when the user taps the Send button
      */
-    public void main(View view) {
+    public void selectCromossomes(View view) {
         /*Intent intent = new Intent(this, DisplayMessageActivity.class);
         EditText editText = findViewById(R.id.editText);
         String message = editText.getText().toString();
@@ -56,6 +58,14 @@ public class MainActivity extends AppCompatActivity {
         popular_variaveis();
         calculo_curva_espectral();
         criacao_populacao();
+
+        EditText edit_L = (EditText) findViewById(R.id.value_L);
+        EditText edit_a = (EditText) findViewById(R.id.value_a);
+        EditText edit_b = (EditText) findViewById(R.id.value_b);
+
+        target_L = Double.parseDouble(edit_L.getText().toString());
+        target_a = Double.parseDouble(edit_b.getText().toString());
+        target_b = Double.parseDouble(edit_a.getText().toString());
 
         for (int iter = 0; iter < NUM_ITERACOES; iter++) {
             calculo_k_e_s_mistura();
@@ -166,7 +176,9 @@ public class MainActivity extends AppCompatActivity {
                 fitting[cromossomo] = 0;
             }
             else {
-                fitting[cromossomo] = Math.sqrt(Math.pow(cores_LAB[cromossomo].getL() - L, 2) + Math.pow(cores_LAB[cromossomo].getA() - A, 2) + Math.pow(cores_LAB[cromossomo].getB() - B, 2));
+                fitting[cromossomo] = Math.sqrt(Math.pow(cores_LAB[cromossomo].getL() - target_L, 2)
+                        + Math.pow(cores_LAB[cromossomo].getA() - target_a, 2)
+                        + Math.pow(cores_LAB[cromossomo].getB() - target_b, 2));
 
                 fitting[cromossomo] = 1 / (fitting[cromossomo] - 0.01);
             }

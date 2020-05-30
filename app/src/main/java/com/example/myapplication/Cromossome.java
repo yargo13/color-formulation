@@ -3,6 +3,13 @@ package com.example.myapplication;
 public class Cromossome {
     static protected int NUM_PIGMENTS;
     static protected boolean[] invalid_pigments;
+    static public String[] pigment_names = {
+            "Pele", "Vermelho", "Amarelo", "Verde", "Marrom", "Azul", "Sangue",
+            "Branco", "Preto", "Flocagem Laranja", "Flocagem Pele", "Flocagem Preto",
+            "Flocagem Ouro", "Flocagem Vermelho", "Flocagem Roxo", "Flocagem Verde",
+            "Flocagem Branco", "Flocagem Marrom Claro", "Flocagem Marrom Escuro",
+            "Flocagem Havana", "Apenas Silicone"
+    };
     public int[] weights;
 
     static void set_NUM_PIGMENTS(int NUM_PIGMENTS){

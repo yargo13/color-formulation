@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -15,7 +16,8 @@ public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS_FNAL = 5;
     int NUM_ITERACOES = 100;
     double MUTATION_RATE = 0.1;
-    double target_L, target_a, target_b;
+    public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
+    double target_L, target_a, target_b, grams_prosthesis;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FNAL];
     double top_fitting[] = new double[QTDE_CROMOSSOMOS_FNAL];
@@ -50,22 +52,19 @@ public class MainActivity extends AppCompatActivity {
      * Called when the user taps the Send button
      */
     public void selectCromossomes(View view) {
-        /*Intent intent = new Intent(this, DisplayMessageActivity.class);
-        EditText editText = findViewById(R.id.editText);
-        String message = editText.getText().toString();
-        intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);*/
         popular_variaveis();
         calculo_curva_espectral();
         criacao_populacao();
 
-        EditText edit_L = (EditText) findViewById(R.id.value_L);
-        EditText edit_a = (EditText) findViewById(R.id.value_a);
-        EditText edit_b = (EditText) findViewById(R.id.value_b);
+        EditText edit_L = findViewById(R.id.value_L);
+        EditText edit_a = findViewById(R.id.value_a);
+        EditText edit_b = findViewById(R.id.value_b);
+        EditText edit_grams = findViewById(R.id.grams_prosthesis);
 
         target_L = Double.parseDouble(edit_L.getText().toString());
         target_a = Double.parseDouble(edit_b.getText().toString());
         target_b = Double.parseDouble(edit_a.getText().toString());
+        grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
 
         for (int iter = 0; iter < NUM_ITERACOES; iter++) {
             calculo_k_e_s_mistura();
@@ -75,7 +74,29 @@ public class MainActivity extends AppCompatActivity {
             if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
             else selection();
         }
-        int a = 0;
+
+        Intent intent = new Intent(this, ResultsActivity.class);
+        intent.putExtra(EXTRA_TEXT_PIGMENTS, createTextForCromossomes(grams_prosthesis));
+        startActivity(intent);
+    }
+
+    public String createTextForCromossomes(double grams_prosthesis){
+        String text_pigments = "";
+        for (int i=0;i< QTDE_CROMOSSOMOS_FNAL; i++){
+            text_pigments += "Opção "+(i+1)+" (fitting "+String.format("%.2f", top_fitting[i])+"):\n";
+            for (int pigment=0; pigment<QTDE_PIGMENTOS; pigment++){
+                if (pigment == PIGMENTO_SILICONE) continue;
+                text_pigments += Cromossome.pigment_names[pigment];
+                text_pigments += ": ";
+                text_pigments += String.format(
+                        "%.4f",
+                        gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis
+                );
+                text_pigments += "g\n";
+            }
+            text_pigments += "\n";
+        }
+        return text_pigments;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -165,9 +186,11 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     public void calculo_fitting() {
+        /*
         double L = 70.50;
         double A = 5.69;
         double B = 16.42;
+         */
 
         for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++){
             if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > 100 ||

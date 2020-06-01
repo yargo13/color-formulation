@@ -7,6 +7,8 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Locale;
+
 
 public class MainActivity extends AppCompatActivity {
     int QTDE_CROMOSSOMOS = 1000;
@@ -82,16 +84,16 @@ public class MainActivity extends AppCompatActivity {
 
     public String createTextForCromossomes(double grams_prosthesis){
         String text_pigments = "";
+        double grams_pigment;
         for (int i=0;i< QTDE_CROMOSSOMOS_FNAL; i++){
             text_pigments += "Opção "+(i+1)+" (fitting "+String.format("%.2f", top_fitting[i])+"):\n";
             for (int pigment=0; pigment<QTDE_PIGMENTOS; pigment++){
                 if (pigment == PIGMENTO_SILICONE) continue;
+                grams_pigment = gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis;
+                if (grams_pigment < 0.01) continue;
                 text_pigments += Cromossome.pigment_names[pigment];
                 text_pigments += ": ";
-                text_pigments += String.format(
-                        "%.4f",
-                        gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis
-                );
+                text_pigments += String.format(Locale.getDefault(), "%.2f", grams_pigment);
                 text_pigments += "g\n";
             }
             text_pigments += "\n";
@@ -166,23 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
         System.arraycopy(genes_novo,0,gene,0,gene.length);
     }
-
-
-
-    //----------------------------------------------------------------------------------------------
-    public double[] mutacao_novo_gene_aleatorio(double cromossomo[]) {
-
-        //local da mutacao - qual gene
-        boolean valid_mutation = false;
-        int local_mutacao = 0;
-        while (!valid_mutation) {
-            local_mutacao = (int) (Math.random()*20);
-            if (!invalid_pigments[local_mutacao]) valid_mutation = true;
-        }
-        cromossomo[local_mutacao] = (Math.random() * 0.005);
-        return cromossomo;
-    }
-
 
     //----------------------------------------------------------------------------------------------
     public void calculo_fitting() {

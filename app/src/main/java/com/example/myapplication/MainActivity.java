@@ -21,24 +21,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     int QTDE_CROMOSSOMOS_FNAL = 5;
     int NUM_ITERACOES = 100;
     double MUTATION_RATE = 0.1;
+    double ESPESSURA_AMOSTRA = 2.0;//em milímetros
+
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
+
     double target_L, target_a, target_b, grams_prosthesis;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
     int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FNAL];
     double top_fitting[] = new double[QTDE_CROMOSSOMOS_FNAL];
+
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsb[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rp[] = new double[QTDE_LAMBDA];
     double Rb[] = new double[QTDE_LAMBDA];
+
     double S[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double K[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double K_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
     double S_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-    double a[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double b[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double ESPESSURA_AMOSTRA = 2.0;//em milímetros
-    //    double ESPESSURA_AMOSTRA = 1.05;//em milímetros
+
     double R_linha[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
     LAB cores_LAB[] = new LAB[QTDE_CROMOSSOMOS];
 
@@ -234,6 +236,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //----------------------------------------------------------------------------------------------
 
     public void calculo_curva_espectral() {
+        double a[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+        double b[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
 
         for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
             Rp[lambda] /= 100;

@@ -13,8 +13,9 @@
         android:onClick="selectCromossomes"
         android:text="@string/button_send"
         app:layout_constraintEnd_toEndOf="@+id/grams_prosthesis"
+        app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintStart_toStartOf="@+id/grams_prosthesis"
-        app:layout_constraintTop_toBottomOf="@+id/grams_prosthesis" />
+        app:layout_constraintTop_toBottomOf="@+id/select_background" />
 
     <EditText
         android:id="@+id/value_a"
@@ -66,5 +67,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/select_background"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/grams_prosthesis"
+        app:layout_constraintHorizontal_bias="0.493"
+        app:layout_constraintStart_toStartOf="@+id/grams_prosthesis"
+        app:layout_constraintTop_toBottomOf="@+id/grams_prosthesis" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

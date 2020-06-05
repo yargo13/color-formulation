@@ -3,14 +3,17 @@ package com.example.myapplication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Locale;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     int QTDE_CROMOSSOMOS = 1000;
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
@@ -43,12 +46,34 @@ public class MainActivity extends AppCompatActivity {
     boolean ESPECTROFOTOMETRO = true;
     boolean invalid_pigments[] = new boolean[QTDE_PIGMENTOS];
 
+    private String[] backgrounds = {"Preto Ideal", "Preto", "Branco", "Pele"};
+    private String chosen_background;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Spinner select_background = findViewById(R.id.select_background);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this,
+                android.R.layout.simple_spinner_item, backgrounds);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        select_background.setAdapter(adapter);
+        select_background.setOnItemSelectedListener(this);
     }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+        chosen_background = backgrounds[position];
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        chosen_background = backgrounds[0];
+    }
+
 
     /**
      * Called when the user taps the Send button
@@ -313,30 +338,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
+
+    public double calculate_R(int lambda, int cromossomo){
+        double a, b, R;
+        double S = S_cromossomo[cromossomo][lambda];
+        double K = K_cromossomo[cromossomo][lambda];
+
+        a = 1 + K/S;
+        b = Math.sqrt(a*a - 1);
+
+        if(chosen_background == "Preto Ideal"){
+            R = 1/(a+b*cotgh(b*S*ESPESSURA_AMOSTRA));
+        }
+        else if(chosen_background == "Preto"){
+            R = (1 - Rp[lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+                    (a - Rp[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+        }
+        else if(chosen_background == "Branco"){
+            R = (1 - Rb[lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+                    (a - Rb[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+        }
+        else {
+            R = (1 - R_inf[0][lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+                    (a - R_inf[0][lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+        }
+        return R;
+    }
+
+    //----------------------------------------------------------------------------------------------
     public void calculo_refletancia_cromossomo() {
         double K1 = 0.039;
         double K2 = 0.540;
         double refracao = 1.415; //n
-        double R[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-        double a_mistura[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-        double b_mistura[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+        double R;
 
         for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++) {
             for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
-                //a =1+K/S
-                a_mistura[cromossomo][lambda] = 1 + K_cromossomo[cromossomo][lambda] / S_cromossomo[cromossomo][lambda];
 
-                //b =(a2 −1)1/2
-                b_mistura[cromossomo][lambda] = Math.sqrt(Math.pow(a_mistura[cromossomo][lambda], 2) - 1);
-
-                //considerando Rp = 0 - como na formula inicial
-                R[cromossomo][lambda] = 1 / (a_mistura[cromossomo][lambda]  + b_mistura[cromossomo][lambda] *
-                        cotgh(b_mistura[cromossomo][lambda] * S_cromossomo[cromossomo][lambda] * ESPESSURA_AMOSTRA));
-
+                R = calculate_R(lambda, cromossomo);
 
                 //R’ = (1 − k1)(1 − k2)R / (1 − k2R)
-                R_linha[cromossomo][lambda] = ((1 - K1) * (1 - K2) * R[cromossomo][lambda]) /
-                        (1 - K2 * R[cromossomo][lambda]);
+                R_linha[cromossomo][lambda] = ((1 - K1) * (1 - K2) * R) /
+                        (1 - K2 * R);
             }
         }
     }

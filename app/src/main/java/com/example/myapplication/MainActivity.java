@@ -10,6 +10,7 @@ import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 
@@ -18,7 +19,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     int QTDE_PIGMENTOS = 21;
     int QTDE_LAMBDA = 31;
     int PIGMENTO_SILICONE = 20;
-    int QTDE_CROMOSSOMOS_FNAL = 5;
+    int QTDE_CROMOSSOMOS_FINAL = 5;
+    int QTDE_PIGMENTOS_FINAL = 5;
     int NUM_ITERACOES = 100;
     double MUTATION_RATE = 0.1;
     double ESPESSURA_AMOSTRA = 2.0;//em milímetros
@@ -27,8 +29,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     double target_L, target_a, target_b, grams_prosthesis;
     Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
-    int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FNAL];
-    double top_fitting[] = new double[QTDE_CROMOSSOMOS_FNAL];
+    int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FINAL];
+    double top_fitting[] = new double[QTDE_CROMOSSOMOS_FINAL];
 
     double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
     double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
@@ -95,14 +97,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         target_b = Double.parseDouble(edit_a.getText().toString());
         grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
 
-        for (int iter = 0; iter < NUM_ITERACOES; iter++) {
-            calculo_k_e_s_mistura();
-            calculo_refletancia_cromossomo();
-            cromossomo_para_LAB();
-            calculo_fitting();
-            if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
-            else selection();
+
+        iterateCromossomes();
+
+        selectTopPigments();
+        Cromossome.set_invalid_pigments(invalid_pigments);
+        for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
+            gene[n].initialize_weights();
         }
+        
+        iterateCromossomes();
 
         Intent intent = new Intent(this, ResultsActivity.class);
         intent.putExtra(EXTRA_TEXT_PIGMENTS, createTextForCromossomes(grams_prosthesis));
@@ -112,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public String createTextForCromossomes(double grams_prosthesis){
         String text_pigments = "";
         double grams_pigment;
-        for (int i=0;i< QTDE_CROMOSSOMOS_FNAL; i++){
+        for (int i=0;i< QTDE_CROMOSSOMOS_FINAL; i++){
             text_pigments += "Opção "+(i+1)+" (fitting "+String.format("%.2f", top_fitting[i])+"):\n";
             for (int pigment=0; pigment<QTDE_PIGMENTOS; pigment++){
                 if (pigment == PIGMENTO_SILICONE) continue;
@@ -127,11 +131,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
         return text_pigments;
     }
+    //----------------------------------------------------------------------------------------------
+    public void iterateCromossomes(){
+        for (int iter = 0; iter < NUM_ITERACOES; iter++) {
+            calculo_k_e_s_mistura();
+            calculo_refletancia_cromossomo();
+            cromossomo_para_LAB();
+            calculo_fitting();
+            if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
+            else selection();
+        }
+    }
 
     //----------------------------------------------------------------------------------------------
+
     public void selectTopCromossomes(){
 
-        for (int n=0; n<QTDE_CROMOSSOMOS_FNAL; n++){
+        for (int n=0; n<QTDE_CROMOSSOMOS_FINAL; n++){
             for (int cromossomo=1; cromossomo<QTDE_CROMOSSOMOS; cromossomo++){
                 if (fitting[cromossomo] > fitting[top_cromossomos[n]]) {
                     top_cromossomos[n] = cromossomo;
@@ -140,6 +156,44 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             top_fitting[n] = fitting[top_cromossomos[n]];
             fitting[top_cromossomos[n]] = 0;
         }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    public void selectTopPigments(){
+        int top_pigment;
+        float weight_top_pigment;
+        float[] weights_pigments = new float[QTDE_PIGMENTOS];
+        int top_pigments[] = new int[QTDE_PIGMENTOS_FINAL];
+
+        for (int i = 0; i < QTDE_CROMOSSOMOS_FINAL; i++){
+            for (int pigment = 0; pigment < QTDE_PIGMENTOS; pigment ++){
+                weights_pigments[pigment] += gene[top_cromossomos[i]].weights[pigment];
+            }
+        }
+
+        for (int i = 0; i < QTDE_PIGMENTOS_FINAL; i++){
+            top_pigment = 0;
+            weight_top_pigment = 0;
+            for (int pigment = 0; pigment < QTDE_PIGMENTOS; pigment++) {
+                if (weights_pigments[pigment] > weight_top_pigment) {
+                    top_pigment = pigment;
+                    weight_top_pigment = weights_pigments[pigment];
+                }
+            }
+            if (weight_top_pigment == 0) {
+                top_pigments[i] = -1;
+                break;
+            }
+            top_pigments[i] = top_pigment;
+            weights_pigments[top_pigment] = 0;
+        }
+
+        Arrays.fill(invalid_pigments, true);
+        for (int i = 0; i < QTDE_PIGMENTOS_FINAL; i++){
+            if (top_pigments[i] == -1) break;
+            invalid_pigments[top_pigments[i]] = false;
+        }
+
     }
 
     //----------------------------------------------------------------------------------------------

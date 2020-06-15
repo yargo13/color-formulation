@@ -105,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
             gene[n].initialize_weights();
         }
-        
         iterateCromossomes();
 
         Intent intent = new Intent(this, ResultsActivity.class);
@@ -240,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         // Causa mutações
-        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)*9);
+        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)*Cromossome.NUM_BITS);
         for (int i=0; i<num_mutation; i++){
             int cromossomo_mutacao = (int) (Math.random() * QTDE_CROMOSSOMOS);
             genes_novo[cromossomo_mutacao].mutate();

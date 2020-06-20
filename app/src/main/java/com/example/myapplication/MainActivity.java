@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
 
     double target_L, target_a, target_b, grams_prosthesis;
-    Cromossome gene[] = new Cromossome[QTDE_CROMOSSOMOS];
+    Chromosome gene[] = new Chromosome[QTDE_CROMOSSOMOS];
     int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FINAL];
     double top_fitting[] = new double[QTDE_CROMOSSOMOS_FINAL];
 
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         iterateCromossomes();
 
         selectTopPigments();
-        Cromossome.set_invalid_pigments(invalid_pigments);
+        Chromosome.set_invalid_pigments(invalid_pigments);
         for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
             gene[n].initialize_weights();
         }
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (pigment == PIGMENTO_SILICONE) continue;
                 grams_pigment = gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis;
                 if (grams_pigment < 0.01) continue;
-                text_pigments += Cromossome.pigment_names[pigment];
+                text_pigments += Chromosome.pigment_names[pigment];
                 text_pigments += ": ";
                 text_pigments += String.format(Locale.getDefault(), "%.2f", grams_pigment);
                 text_pigments += "g\n";
@@ -203,9 +203,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         int tamanho_cromossomo = fitting.length;
         int num_genes_mantem = 0;
         int index_genes_novo = 0;
-        Cromossome genes_novo[] = new Cromossome[QTDE_CROMOSSOMOS+1];
+        Chromosome genes_novo[] = new Chromosome[QTDE_CROMOSSOMOS+1];
         for (int i = 0; i<QTDE_CROMOSSOMOS+1; i++){
-            genes_novo[i] = new Cromossome();
+            genes_novo[i] = new Chromosome();
         }
         int qtde_cromossomos_invalidos = 0;
 
@@ -234,12 +234,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             int cromossomo_crossover_2 = (int) (Math.random() * num_genes_mantem);
 
             //transferindo valores para array genes_novos
-            Cromossome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
+            Chromosome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
             index_genes_novo += 2;
         }
 
         // Causa mutações
-        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)*Cromossome.NUM_BITS);
+        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)* Chromosome.NUM_BITS);
         for (int i=0; i<num_mutation; i++){
             int cromossomo_mutacao = (int) (Math.random() * QTDE_CROMOSSOMOS);
             genes_novo[cromossomo_mutacao].mutate();
@@ -278,10 +278,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //----------------------------------------------------------------------------------------------
 
     public void criacao_populacao() {
-        Cromossome.set_NUM_PIGMENTS(QTDE_PIGMENTOS);
-        Cromossome.set_invalid_pigments(invalid_pigments);
+        Chromosome.set_NUM_PIGMENTS(QTDE_PIGMENTOS);
+        Chromosome.set_invalid_pigments(invalid_pigments);
         for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
-            gene[n] = new Cromossome();
+            gene[n] = new Chromosome();
             gene[n].initialize_weights();
         }
     }

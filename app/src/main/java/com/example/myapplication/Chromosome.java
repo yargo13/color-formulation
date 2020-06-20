@@ -1,6 +1,6 @@
 package com.example.myapplication;
 
-public class Cromossome {
+public class Chromosome {
     static protected int NUM_PIGMENTS;
     static protected boolean[] invalid_pigments;
     static public String[] pigment_names = {
@@ -14,14 +14,14 @@ public class Cromossome {
     public int[] weights;
 
     static void set_NUM_PIGMENTS(int NUM_PIGMENTS){
-        Cromossome.NUM_PIGMENTS = NUM_PIGMENTS;
+        Chromosome.NUM_PIGMENTS = NUM_PIGMENTS;
     }
 
     static void set_invalid_pigments(boolean[] invalid_pigments){
-        Cromossome.invalid_pigments = invalid_pigments;
+        Chromosome.invalid_pigments = invalid_pigments;
     }
 
-    public Cromossome(){
+    public Chromosome(){
         this.weights = new int[NUM_PIGMENTS];
     }
 
@@ -29,7 +29,7 @@ public class Cromossome {
         int sum = 0;
         for(int i=0; i<NUM_PIGMENTS; i++){
             if (invalid_pigments[i]) continue;
-            // We will use 11 bits for each cromossome, so that the value for each pigment is from
+            // We will use 11 bits for each chromosome, so that the value for each pigment is from
             // 0 to 2047 => 0.00000 to 0.02047 in steps of 0.00001 considering weight percentage
             this.weights[i] = (int) (Math.random()*Math.pow(2, NUM_BITS));
             sum += this.weights[i];
@@ -42,7 +42,7 @@ public class Cromossome {
 
     }
 
-    static void crossover(Cromossome c1, Cromossome c2, Cromossome new_c1, Cromossome new_c2){
+    static void crossover(Chromosome c1, Chromosome c2, Chromosome new_c1, Chromosome new_c2){
         int point_crossover = (int) (Math.random()*(NUM_BITS*NUM_PIGMENTS-1));
         int pigment = point_crossover/(NUM_BITS);
         // Bit that the crossover is going to happen, counting from right to left

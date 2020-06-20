@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         String text_pigments = "";
         double grams_pigment;
         for (int i=0;i< QTDE_CROMOSSOMOS_FINAL; i++){
-            text_pigments += "Opção "+(i+1)+" (fitting "+String.format("%.2f", top_fitting[i])+"):\n";
+            text_pigments += "Opção "+(i+1)+" (ΔEab "+String.format("%.2f", 1/top_fitting[i])+" Fitting "+String.format("%.2f", top_fitting[i])+"):\n";
             for (int pigment=0; pigment<QTDE_PIGMENTOS; pigment++){
                 if (pigment == PIGMENTO_SILICONE) continue;
                 grams_pigment = gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis;
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         + Math.pow(cores_LAB[cromossomo].getA() - target_a, 2)
                         + Math.pow(cores_LAB[cromossomo].getB() - target_b, 2));
 
-                fitting[cromossomo] = 1 / (fitting[cromossomo] - 0.01);
+                fitting[cromossomo] = 1 / (fitting[cromossomo] + 0.00001);
             }
         }
 

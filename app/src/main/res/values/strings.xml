@@ -7,6 +7,9 @@
     <string name="button_send">Enviar</string>
     <string name="edit_grams">Peso da prótese (g)</string>
     <string name="text_background">Fundo</string>
+    <string name="select_region">Selecione a região da imagem</string>
+    <string name="confirm">Confirmar</string>
+    <string name="select_imagem">Selecionar imagem</string>
     <!-- Strings used for fragments for navigation -->
 
 </resources>

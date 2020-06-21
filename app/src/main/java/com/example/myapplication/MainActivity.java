@@ -1,13 +1,17 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Arrays;
@@ -53,6 +57,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private String[] backgrounds = {"Preto Ideal", "Preto", "Branco", "Pele"};
     private String chosen_background;
 
+    private static final int GALLERY_REQUEST_CODE = 1234;
+    private static final int LAB_REQUEST_CODE = 1235;
+    public static final String EXTRA_URI_PICTURE = "com.application.myApplication.SELECTED_IMAGE";
+
+    EditText edit_a;
+    EditText edit_b;
+    EditText edit_L;
+    EditText edit_grams;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +78,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         select_background.setAdapter(adapter);
         select_background.setOnItemSelectedListener(this);
+
+        edit_L = findViewById(R.id.value_L);
+        edit_a = findViewById(R.id.value_a);
+        edit_b = findViewById(R.id.value_b);
+        edit_grams = findViewById(R.id.grams_prosthesis);
+
+        Button select_image_button = findViewById(R.id.select_image);
+        select_image_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Selecione uma imagem"), GALLERY_REQUEST_CODE);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+             Uri imageData = data.getData();
+             Intent intent = new Intent(this, ImageActivity.class);
+             intent.putExtra(EXTRA_URI_PICTURE, imageData.toString());
+             startActivityForResult(intent, LAB_REQUEST_CODE);
+        }
+        if(requestCode == LAB_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            double value_a = data.getDoubleExtra(ImageActivity.value_a, 0);
+            edit_a.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_a, 0)));
+            edit_b.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_b, 0)));
+            edit_L.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_L, 0)));
+        }
     }
 
     @Override
@@ -86,11 +130,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         popular_variaveis();
         calculo_curva_espectral();
         criacao_populacao();
-
-        EditText edit_L = findViewById(R.id.value_L);
-        EditText edit_a = findViewById(R.id.value_a);
-        EditText edit_b = findViewById(R.id.value_b);
-        EditText edit_grams = findViewById(R.id.grams_prosthesis);
 
         target_L = Double.parseDouble(edit_L.getText().toString());
         target_a = Double.parseDouble(edit_b.getText().toString());

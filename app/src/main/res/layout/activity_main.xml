@@ -22,13 +22,13 @@
         android:id="@+id/select_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:onClick="selectCromossomes"
         android:text="@string/select_imagem"
         app:layout_constraintEnd_toEndOf="@+id/grams_prosthesis"
         app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintStart_toStartOf="@+id/grams_prosthesis"
-        app:layout_constraintTop_toBottomOf="@+id/send" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/value_a"
@@ -79,7 +79,7 @@
         android:inputType="numberDecimal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/select_image" />
 
     <Spinner
         android:id="@+id/select_background"

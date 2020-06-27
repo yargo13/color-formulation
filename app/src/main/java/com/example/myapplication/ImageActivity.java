@@ -50,6 +50,26 @@ public class ImageActivity extends AppCompatActivity {
     }
 
     protected LAB getAverageLAB(Bitmap bitmap) {
-        return new LAB(70.5, 5.69,16.42);
+        int r_int, g_int, b_int;
+        double L_avg = 0;
+        double A_avg = 0;
+        double B_avg = 0;
+        XYZSet xyzSet = new XYZSet();
+        LAB lab;
+        int size = bitmap.getWidth()*bitmap.getHeight();
+        int[] pixels = new int[size];
+        bitmap.getPixels(pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        for (int pixel: pixels) {
+            r_int = (pixel >> 16) & 0xff;
+            g_int = (pixel >> 8) & 0xff;
+            b_int = pixel & 0xff;
+            xyzSet.RGBtoLAB(r_int, g_int, b_int);
+            lab = xyzSet.getLAB();
+            L_avg += lab.getL();
+            A_avg += lab.getA();
+            B_avg += lab.getB();
+        }
+
+        return new LAB(L_avg/size, A_avg/size,B_avg/size);
     }
 }

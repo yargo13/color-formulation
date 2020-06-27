@@ -11,11 +11,11 @@ public class XYZSet {
     double X, Y, Z;		// CIE XYZ coords
     int r, g, b;		// RGB coords
     /**
-     * White Point Reference
+     * White Point Reference for D65 10 degrees
      */
-    static double Xr = 0.9673;
+    static double Xr = 0.948242;
     static double Yr = 1;
-    static double Zr = 0.814073;
+    static double Zr = 1.073955;
 
     /**
      * x color matching function tabulated at 10-nm intervals.
@@ -122,7 +122,32 @@ public class XYZSet {
         Z /= N;
     }
 
+    /**
+     * Converts RGB to XYZ data using the default illuminant
+     */
+    public void RGBtoXYZ(int r_int, int g_int, int b_int) {
+        double r = r_int/255.0;
+        double g = g_int/255.0;
+        double b = b_int/255.0;
 
+        /* Linearização do sRGB */
+        if (r>0.04045) r = Math.pow(((r+0.055)/1.055),2.4);
+        else r = r/12.92;
+        if (g>0.04045) g = Math.pow(((g+0.055)/1.055),2.4);
+        else g = g/12.92;
+        if (b>0.04045) b = Math.pow(((b+0.055)/1.055),2.4);
+        else b = b/12.92;
+
+        X = (r*0.4124 + g*0.3576 + b*0.1805);
+        Y = (r*0.2126 + g*0.7152 + b*0.0722);
+        Z = (r*0.0193 + g*0.1192 + b*0.9505);
+    }
+
+
+    public void RGBtoLAB(int r_int, int g_int, int b_int) {
+        RGBtoXYZ(r_int, g_int, b_int);
+        XYZtoLAB();
+    }
 
     /**
      * Converts from LAB to XYZ. Uses internal L-value.

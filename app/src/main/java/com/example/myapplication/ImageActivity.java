@@ -9,12 +9,13 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class ImageActivity extends AppCompatActivity {
 
-    ImageView imageView;
+    DrawView drawView;
     static public String value_a = "com.application.myApplication.value_a";
     static public String value_b = "com.application.myApplication.value_b";
     static public String value_L = "com.application.myApplication.value_L";
@@ -27,14 +28,18 @@ public class ImageActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Uri imageData = Uri.parse(intent.getStringExtra(MainActivity.EXTRA_URI_PICTURE));
 
-        imageView = findViewById(R.id.imageView);
-        imageView.setImageURI(imageData);
 
+        drawView = findViewById(R.id.drawView);
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(imageData);
+            drawView.setBackground(Drawable.createFromStream(inputStream, imageData.toString()));
+        } catch (FileNotFoundException e) {
+        }
     }
 
     public void confirmImage(View view) {
-        Drawable imgDrawable = imageView.getDrawable();
-        Bitmap bitmap = ((BitmapDrawable)imgDrawable).getBitmap();
+        BitmapDrawable imgDrawable = drawView.getSelectedRegion();
+        Bitmap bitmap = (imgDrawable).getBitmap();
         LAB average_lab = getAverageLAB(bitmap);
 
         setResult(RESULT_OK,

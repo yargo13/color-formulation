@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import java.util.Arrays;
+
 public class Chromosome {
     static protected int NUM_PIGMENTS;
     static protected boolean[] invalid_pigments;
@@ -18,7 +20,7 @@ public class Chromosome {
     }
 
     static void set_invalid_pigments(boolean[] invalid_pigments){
-        Chromosome.invalid_pigments = invalid_pigments;
+        Chromosome.invalid_pigments = invalid_pigments.clone();
     }
 
     public Chromosome(){
@@ -27,6 +29,7 @@ public class Chromosome {
 
     public void initialize_weights(){
         int sum = 0;
+        Arrays.fill(weights, 0);
         for(int i=0; i<NUM_PIGMENTS; i++){
             if (invalid_pigments[i]) continue;
             // We will use 11 bits for each chromosome, so that the value for each pigment is from

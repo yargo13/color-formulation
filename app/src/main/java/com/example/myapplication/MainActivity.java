@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
             gene[n].initialize_weights();
         }
+
         iterateCromossomes();
 
         Intent intent = new Intent(this, ResultsActivity.class);
@@ -349,7 +350,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         R_inf = correcao_R(R_inf);
 
         double arc_cotgh = 0;
-        int pigmento_silicone = QTDE_PIGMENTOS-1;
 
         for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
             for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
@@ -418,13 +418,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void calculo_k_e_s_mistura() {
         for (int cromo = 0; cromo < QTDE_CROMOSSOMOS; cromo++) {
             for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
-                K_cromossomo[cromo][lambda] = K[20][lambda];
-                S_cromossomo[cromo][lambda] = S[20][lambda];
+                K_cromossomo[cromo][lambda] = 0;
+                S_cromossomo[cromo][lambda] = 0;
+                for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
 
-                for (int pigmento = 0; pigmento < 20; pigmento++) {
-
-                    K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento]*0.00001;
-                    S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento]*0.00001;
+                    if (pigmento == PIGMENTO_SILICONE) {
+                        K_cromossomo[cromo][lambda] += K[pigmento][lambda];
+                        S_cromossomo[cromo][lambda] += S[pigmento][lambda];
+                    } else {
+                        K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
+                        S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
+                    }
                 }
 
                 //if (K_cromossomo[cromo][lambda] < 0) K_cromossomo[cromo][lambda] = 1e-9;
@@ -447,15 +451,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             R = 1/(a+b*cotgh(b*S*ESPESSURA_AMOSTRA));
         }
         else if(chosen_background == "Preto"){
-            R = (1 - Rp[lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+            R = (1 - Rp[lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
                     (a - Rp[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
         }
         else if(chosen_background == "Branco"){
-            R = (1 - Rb[lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+            R = (1 - Rb[lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
                     (a - Rb[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
         }
         else {
-            R = (1 - R_inf[0][lambda]*cotgh(b*S*ESPESSURA_AMOSTRA))/
+            // R_inf[0] é o pigmento pele de espessura infinita
+            R = (1 - R_inf[0][lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
                     (a - R_inf[0][lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
         }
         return R;

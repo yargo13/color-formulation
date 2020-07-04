@@ -28,7 +28,6 @@ public class ImageActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Uri imageData = Uri.parse(intent.getStringExtra(MainActivity.EXTRA_URI_PICTURE));
 
-
         drawView = findViewById(R.id.drawView);
         try {
             InputStream inputStream = getContentResolver().openInputStream(imageData);

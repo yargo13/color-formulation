@@ -12,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * From: https://github.com/MARGI3/CropImage
  */
 
 
@@ -70,7 +72,9 @@ public class DrawView extends View {
         setFocusable(true); // necessary for getting the touch events
     }
 
-    private void initRectangle(int X, int Y) {
+    private void initRectangle(int X, int Y, int width, int height) {
+        ColorBall colorBall = new ColorBall(getContext(), R.drawable.gray_circle, new Point(), 0);
+
         //initialize rectangle.
         points[0] = new Point();
         points[0].x = X;
@@ -78,14 +82,14 @@ public class DrawView extends View {
 
         points[1] = new Point();
         points[1].x = X;
-        points[1].y = Y + 30;
+        points[1].y = height - colorBall.getHeightOfBall();
 
         points[2] = new Point();
-        points[2].x = X + 30;
-        points[2].y = Y + 30;
+        points[2].x = width - colorBall.getWidthOfBall();
+        points[2].y = height - colorBall.getHeightOfBall();
 
         points[3] = new Point();
-        points[3].x = X +30;
+        points[3].x = width - colorBall.getWidthOfBall();
         points[3].y = Y;
 
         balID = 2;
@@ -101,7 +105,7 @@ public class DrawView extends View {
     protected void onDraw(Canvas canvas) {
         if(points[3]==null) {
             //point4 null when view first create
-            initRectangle(getWidth() / 2, getHeight() / 2);
+            initRectangle(0, 0, getWidth(), getHeight());
         }
 
         int left, top, right, bottom;
@@ -110,10 +114,10 @@ public class DrawView extends View {
         right = points[0].x;
         bottom = points[0].y;
         for (int i = 1; i < points.length; i++) {
-            left = left > points[i].x ? points[i].x : left;
-            top = top > points[i].y ? points[i].y : top;
-            right = right < points[i].x ? points[i].x : right;
-            bottom = bottom < points[i].y ? points[i].y : bottom;
+            left = Math.min(left, points[i].x);
+            top = Math.min(top, points[i].y);
+            right = Math.max(right, points[i].x);
+            bottom = Math.max(bottom, points[i].y);
         }
         paint.setAntiAlias(true);
         paint.setDither(true);
@@ -139,14 +143,11 @@ public class DrawView extends View {
 
         // draw the balls on the canvas
         paint.setColor(Color.RED);
-        paint.setTextSize(18);
         paint.setStrokeWidth(0);
         for (int i =0; i < colorballs.size(); i ++) {
             ColorBall ball = colorballs.get(i);
             canvas.drawBitmap(ball.getBitmap(), ball.getX(), ball.getY(),
                     paint);
-
-            canvas.drawText("" + (i+1), ball.getX(), ball.getY(), paint);
         }
     }
 
@@ -162,7 +163,7 @@ public class DrawView extends View {
             case MotionEvent.ACTION_DOWN: // touch down so check if the finger is on
                 // a ball
                 if (points[0] == null) {
-                    initRectangle(X, Y);
+                    initRectangle(X, Y, this.getWidth(), this.getHeight());
                 } else {
                     //resize rectangle
                     balID = -1;
@@ -254,7 +255,7 @@ public class DrawView extends View {
             BitmapDrawable drawable = new BitmapDrawable(getResources(), croppedBitmap);
             return drawable;
         }
-        return (BitmapDrawable) backgroundDrawable;
+        return null;
     }
 
     public static class ColorBall {
@@ -264,7 +265,7 @@ public class DrawView extends View {
         Point point;
         int id;
 
-        public ColorBall(Context context, int resourceId, Point point, int id) {
+        ColorBall(Context context, int resourceId, Point point, int id) {
             this.id = id;
             bitmap = BitmapFactory.decodeResource(context.getResources(),
                     resourceId);
@@ -272,35 +273,35 @@ public class DrawView extends View {
             this.point = point;
         }
 
-        public int getWidthOfBall() {
+        int getWidthOfBall() {
             return bitmap.getWidth();
         }
 
-        public int getHeightOfBall() {
+        int getHeightOfBall() {
             return bitmap.getHeight();
         }
 
-        public Bitmap getBitmap() {
+        Bitmap getBitmap() {
             return bitmap;
         }
 
-        public int getX() {
+        int getX() {
             return point.x;
         }
 
-        public int getY() {
+        int getY() {
             return point.y;
         }
 
-        public int getID() {
+        int getID() {
             return id;
         }
 
-        public void setX(int x) {
+        void setX(int x) {
             point.x = x;
         }
 
-        public void setY(int y) {
+        void setY(int y) {
             point.y = y;
         }
     }

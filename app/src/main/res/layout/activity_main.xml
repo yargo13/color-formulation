@@ -70,6 +70,19 @@
         app:layout_constraintTop_toBottomOf="@+id/value_b" />
 
     <EditText
+        android:id="@+id/thickness_prosthesis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:ems="10"
+        android:hint="@string/edit_thickness"
+        android:inputType="numberDecimal"
+        app:layout_constraintEnd_toEndOf="@+id/value_a"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/value_a"
+        app:layout_constraintTop_toBottomOf="@+id/grams_prosthesis" />
+
+    <EditText
         android:id="@+id/value_L"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -97,7 +110,8 @@
         android:layout_marginTop="16dp"
         android:text="@string/text_background"
         app:layout_constraintEnd_toEndOf="@+id/grams_prosthesis"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="@+id/grams_prosthesis"
-        app:layout_constraintTop_toBottomOf="@+id/grams_prosthesis" />
+        app:layout_constraintTop_toBottomOf="@+id/thickness_prosthesis" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

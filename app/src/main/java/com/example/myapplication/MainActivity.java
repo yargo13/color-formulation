@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
 
-    double target_L, target_a, target_b, grams_prosthesis;
+    double target_L, target_a, target_b, grams_prosthesis, thickness_prosthesis;
     Chromosome gene[] = new Chromosome[QTDE_CROMOSSOMOS];
     int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FINAL];
     double top_fitting[] = new double[QTDE_CROMOSSOMOS_FINAL];
@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     EditText edit_b;
     EditText edit_L;
     EditText edit_grams;
+    EditText edit_prosthesis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         edit_a = findViewById(R.id.value_a);
         edit_b = findViewById(R.id.value_b);
         edit_grams = findViewById(R.id.grams_prosthesis);
+        edit_prosthesis = findViewById(R.id.thickness_prosthesis);
 
         Button select_image_button = findViewById(R.id.select_image);
         select_image_button.setOnClickListener(new View.OnClickListener() {
@@ -135,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         target_a = Double.parseDouble(edit_b.getText().toString());
         target_b = Double.parseDouble(edit_a.getText().toString());
         grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
-
+        thickness_prosthesis = Double.parseDouble(edit_prosthesis.getText().toString());
 
         iterateCromossomes();
 
@@ -448,20 +450,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         b = Math.sqrt(a*a - 1);
 
         if(chosen_background == "Preto Ideal"){
-            R = 1/(a+b*cotgh(b*S*ESPESSURA_AMOSTRA));
+            R = 1/(a+b*cotgh(b*S*thickness_prosthesis));
         }
         else if(chosen_background == "Preto"){
-            R = (1 - Rp[lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
-                    (a - Rp[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+            R = (1 - Rp[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
+                    (a - Rp[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
         else if(chosen_background == "Branco"){
-            R = (1 - Rb[lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
-                    (a - Rb[lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+            R = (1 - Rb[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
+                    (a - Rb[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
         else {
             // R_inf[0] é o pigmento pele de espessura infinita
-            R = (1 - R_inf[0][lambda]*(a - b*cotgh(b*S*ESPESSURA_AMOSTRA)))/
-                    (a - R_inf[0][lambda] + b*cotgh(b*S*ESPESSURA_AMOSTRA));
+            R = (1 - R_inf[0][lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
+                    (a - R_inf[0][lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
         return R;
     }

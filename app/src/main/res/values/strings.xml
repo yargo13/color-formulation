@@ -6,6 +6,7 @@
     <string name="edit_b">Valor de b</string>
     <string name="button_send">Enviar</string>
     <string name="edit_grams">Peso da prótese (g)</string>
+    <string name="edit_thickness">Espessura (mm)</string>
     <string name="text_background">Fundo</string>
     <string name="select_region">Selecione a região da imagem</string>
     <string name="confirm">Confirmar</string>

@@ -73,7 +73,7 @@ public class DrawView extends View {
     }
 
     private void initRectangle(int X, int Y, int width, int height) {
-        ColorBall colorBall = new ColorBall(getContext(), R.drawable.gray_circle, new Point(), 0);
+        ColorBall colorBall = new ColorBall(getContext(), R.drawable.ic_circle, new Point(), 0);
 
         //initialize rectangle.
         points[0] = new Point();
@@ -96,7 +96,7 @@ public class DrawView extends View {
         groupId = 1;
         // declare each ball with the ColorBall class
         for (int i = 0; i < points.length; i++) {
-            colorballs.add(new ColorBall(getContext(), R.drawable.gray_circle, points[i], i));
+            colorballs.add(new ColorBall(getContext(), R.drawable.ic_circle, points[i], i));
         }
     }
 
@@ -267,8 +267,13 @@ public class DrawView extends View {
 
         ColorBall(Context context, int resourceId, Point point, int id) {
             this.id = id;
-            bitmap = BitmapFactory.decodeResource(context.getResources(),
-                    resourceId);
+
+            Drawable drawable = context.getResources().getDrawable(resourceId);
+            Canvas canvas = new Canvas();
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(bitmap);
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+            drawable.draw(canvas);
             mContext = context;
             this.point = point;
         }

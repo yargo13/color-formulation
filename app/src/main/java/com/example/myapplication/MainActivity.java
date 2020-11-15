@@ -30,7 +30,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
 
-    double target_L, target_a, target_b, grams_prosthesis, thickness_prosthesis;
+    double grams_prosthesis, thickness_prosthesis;
+    LAB target;
+    LAB target_illA;
     Chromosome[] gene = new Chromosome[QTDE_CROMOSSOMOS];
     int[] top_cromossomos = new int[QTDE_CROMOSSOMOS_FINAL];
     double[] top_fitting = new double[QTDE_CROMOSSOMOS_FINAL];
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     double[][] R_linha = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
     LAB[] cores_LAB = new LAB[QTDE_CROMOSSOMOS];
+    LAB[] cores_LAB_illA = new LAB[QTDE_CROMOSSOMOS];
 
     double[] fitting = new double[QTDE_CROMOSSOMOS];
     boolean ESPECTROFOTOMETRO = true;
@@ -128,21 +131,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      * Called when the user taps the Send button
      */
     public void selectChromosomes(View view) {
-
-        XYZ test = new XYZ(0.3041, 0.2933, 0.2208);
-        ColorTransformation.convertIlluminantXYZ(test, ColorTransformation.ILLUMINANT_A_10_DEGREES);
-
         popular_variaveis();
         calculo_curva_espectral();
         criacao_populacao();
 
-        target_L = Double.parseDouble(edit_L.getText().toString());
-        target_a = Double.parseDouble(edit_a.getText().toString());
-        target_b = Double.parseDouble(edit_b.getText().toString());
+        double target_L = Double.parseDouble(edit_L.getText().toString());
+        double target_a = Double.parseDouble(edit_a.getText().toString());
+        double target_b = Double.parseDouble(edit_b.getText().toString());
+        target = new LAB(target_L, target_a, target_b);
+        target_illA = ColorTransformation.convertIlluminantLAB(
+                target, ColorTransformation.ILLUMINANT_A_10_DEGREES
+        );
         grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
         thickness_prosthesis = Double.parseDouble(edit_prosthesis.getText().toString());
 
-        iterateCromossomes();
+        iterateCromossomes(false);
 
         selectTopPigments();
         Chromosome.set_invalid_pigments(invalid_pigments);
@@ -150,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             gene[n].initialize_weights();
         }
 
-        iterateCromossomes();
+        iterateCromossomes(true);
 
         Intent intent = new Intent(this, ResultsActivity.class);
         intent.putExtra(EXTRA_TEXT_PIGMENTS, createTextForCromossomes(grams_prosthesis));
@@ -176,12 +179,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return text_pigments;
     }
     //----------------------------------------------------------------------------------------------
-    public void iterateCromossomes(){
+    public void iterateCromossomes(boolean useIlluminantA){
         for (int iter = 0; iter < NUM_ITERACOES; iter++) {
             calculo_k_e_s_mistura();
             calculo_refletancia_cromossomo();
             cromossomo_para_LAB();
-            calculo_fitting();
+            calculo_fitting(useIlluminantA);
             if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
             else selection();
         }
@@ -295,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public void calculo_fitting() {
+    public void calculo_fitting(boolean useIlluminantA) {
         /*
         double L = 70.50;
         double A = 5.69;
@@ -309,11 +312,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 fitting[cromossomo] = 0;
             }
             else {
-                fitting[cromossomo] = Math.sqrt(Math.pow(cores_LAB[cromossomo].getL() - target_L, 2)
-                        + Math.pow(cores_LAB[cromossomo].getA() - target_a, 2)
-                        + Math.pow(cores_LAB[cromossomo].getB() - target_b, 2));
 
-                fitting[cromossomo] = 1 / (fitting[cromossomo] + 0.00001);
+                double fittingD65 = Math.sqrt(Math.pow(cores_LAB[cromossomo].getL() - target.getL(), 2)
+                        + Math.pow(cores_LAB[cromossomo].getA() - target.getA(), 2)
+                        + Math.pow(cores_LAB[cromossomo].getB() - target.getB(), 2));
+                double fittingA = Math.sqrt(Math.pow(cores_LAB_illA[cromossomo].getL() - target_illA.getL(), 2)
+                        + Math.pow(cores_LAB_illA[cromossomo].getA() - target_illA.getA(), 2)
+                        + Math.pow(cores_LAB_illA[cromossomo].getB() - target_illA.getB(), 2));
+
+                fitting[cromossomo] = useIlluminantA ? 1 / (fittingD65 + 0.00001) : 1 / (fittingA + fittingD65 + 0.00001);
             }
         }
 
@@ -527,6 +534,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (verifica_R_linha(index)) {
                 cores_LAB[index] = ColorTransformation.spectrumToLAB(
                         R_linha[index], ColorTransformation.ILLUMINANT_D65_10_DEGREES
+                );
+                cores_LAB_illA[index] = ColorTransformation.spectrumToLAB(
+                        R_linha[index], ColorTransformation.ILLUMINANT_A_10_DEGREES
                 );
             }
         }

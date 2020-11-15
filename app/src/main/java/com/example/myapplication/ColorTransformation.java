@@ -167,12 +167,7 @@ public class ColorTransformation {
     }
 
     static double f(double x){
-        if(x > 0.008856){
-            return Math.pow(x, 0.333333);
-        }
-        else {
-            return 7.787*x + 0.1379;
-        }
+        return x > 0.008856 ? Math.pow(x, 0.333333) : 7.787*x + 0.1379;
     }
 
     /**
@@ -194,9 +189,28 @@ public class ColorTransformation {
         return new LAB(L, a, b, illuminant);
     }
 
+    static XYZ LABtoXYZ(LAB lab){
+        double fx, fy, fz;
+
+        int illuminant = lab.getIlluminant();
+        double[] reference = whitePointReference[illuminant];
+
+        fy = (lab.getL() + 16)/116;
+        fx = lab.getA()/500 + fy;
+        fz = fy - lab.getB()/200;
+
+        double x = fx*fx*fx > 0.008856 ? fx*fx*fx : (116*fx-16)/903.3;
+        double y = lab.getL() > 0.008856*903.3 ? fy*fy*fy : lab.getL()/903.3;
+        double z = fz*fz*fz > 0.008856 ? fz*fz*fz : (116*fz-16)/903.3;
+
+        return new XYZ(reference[0]*x, reference[1]*y, reference[2]*z, illuminant);
+    }
+
     /**
      * Converts a XYZ value from one illuminant to another
      * Uses https://doi.org/10.1002/col.21745 matrices
+     *
+     * Could have used Bradford Transform
      */
     static XYZ convertIlluminantXYZ(XYZ xyz, int illuminantTo) {
         int illuminantFrom = xyz.getIlluminant();
@@ -218,5 +232,9 @@ public class ColorTransformation {
         double zTo = xD65 * d65MatrixTo[2][0] + yD65 * d65MatrixTo[2][1] + zD65 * d65MatrixTo[2][2];
 
         return new XYZ(xTo, yTo, zTo, illuminantTo);
+    }
+
+    static LAB convertIlluminantLAB(LAB lab, int illuminantTo) {
+        return XYZtoLAB(convertIlluminantXYZ(LABtoXYZ(lab), illuminantTo));
     }
 }

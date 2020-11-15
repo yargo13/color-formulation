@@ -6,7 +6,7 @@ public class XYZ {
     protected int illuminant;
 
     public XYZ( double X, double Y, double Z){
-        new XYZ(X, Y, Z, ColorTransformation.ILLUMINANT_D65_10_DEGREES);
+        this(X, Y, Z, ColorTransformation.ILLUMINANT_D65_10_DEGREES);
     }
 
     public XYZ( double X, double Y, double Z, int illuminant) {

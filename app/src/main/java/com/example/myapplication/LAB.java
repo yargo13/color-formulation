@@ -6,7 +6,7 @@ public class LAB {
     protected int illuminant;
 
     public LAB( double L, double A, double B) {
-        new LAB(L, A, B, ColorTransformation.ILLUMINANT_D65_10_DEGREES);
+        this(L, A, B, ColorTransformation.ILLUMINANT_D65_10_DEGREES);
     }
 
     public LAB( double L, double A, double B, int illuminant) {

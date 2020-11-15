@@ -81,6 +81,32 @@ public class ColorTransformation {
             }
     };
 
+    static double[][][]  toD65Illuminant = {
+            {
+                    {1.0000, 0.0000, 0.0000},
+                    {0.0000, 1.0000, 0.0000},
+                    {0.0000, 0.0000, 1.0000},
+            },
+            {
+                    { 0.4660, 0.3290, 0.3458},
+                    {-0.3725, 1.4062, 0.1030},
+                    { 0.0607,-0.0918, 3.1299},
+            }
+    };
+
+    static double[][][] fromD65Illuminant = {
+            {
+                    {1.0000, 0.0000, 0.0000},
+                    {0.0000, 1.0000, 0.0000},
+                    {0.0000, 0.0000, 1.0000},
+            },
+            {
+                    { 1.8201,-0.4380,-0.1867},
+                    { 0.4837, 0.5932,-0.0730},
+                    {-0.0211, 0.0259, 0.3210},
+            }
+    };
+
     static double[] spectralReference = {1161.9469, 1137.80110};
 
     /**
@@ -169,6 +195,28 @@ public class ColorTransformation {
     }
 
     /**
-     * Converts
+     * Converts a XYZ value from one illuminant to another
+     * Uses https://doi.org/10.1002/col.21745 matrices
      */
+    static XYZ convertIlluminantXYZ(XYZ xyz, int illuminantTo) {
+        int illuminantFrom = xyz.getIlluminant();
+
+        double xFrom = xyz.getX();
+        double yFrom = xyz.getY();
+        double zFrom = xyz.getZ();
+
+        double[][] d65MatrixFrom = toD65Illuminant[illuminantFrom];
+
+        double xD65 = xFrom * d65MatrixFrom[0][0] + yFrom * d65MatrixFrom[0][1] + zFrom * d65MatrixFrom[0][2];
+        double yD65 = xFrom * d65MatrixFrom[1][0] + yFrom * d65MatrixFrom[1][1] + zFrom * d65MatrixFrom[1][2];
+        double zD65 = xFrom * d65MatrixFrom[2][0] + yFrom * d65MatrixFrom[2][1] + zFrom * d65MatrixFrom[2][2];
+
+        double[][] d65MatrixTo = fromD65Illuminant[illuminantTo];
+
+        double xTo = xD65 * d65MatrixTo[0][0] + yD65 * d65MatrixTo[0][1] + zD65 * d65MatrixTo[0][2];
+        double yTo = xD65 * d65MatrixTo[1][0] + yD65 * d65MatrixTo[1][1] + zD65 * d65MatrixTo[1][2];
+        double zTo = xD65 * d65MatrixTo[2][0] + yD65 * d65MatrixTo[2][1] + zD65 * d65MatrixTo[2][2];
+
+        return new XYZ(xTo, yTo, zTo, illuminantTo);
+    }
 }

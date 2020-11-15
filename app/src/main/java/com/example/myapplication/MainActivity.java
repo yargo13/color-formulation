@@ -127,7 +127,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     /**
      * Called when the user taps the Send button
      */
-    public void selectCromossomes(View view) {
+    public void selectChromosomes(View view) {
+
+        XYZ test = new XYZ(0.3041, 0.2933, 0.2208);
+        ColorTransformation.convertIlluminantXYZ(test, ColorTransformation.ILLUMINANT_A_10_DEGREES);
+
         popular_variaveis();
         calculo_curva_espectral();
         criacao_populacao();

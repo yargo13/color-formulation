@@ -9,7 +9,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -134,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         criacao_populacao();
 
         target_L = Double.parseDouble(edit_L.getText().toString());
-        target_a = Double.parseDouble(edit_b.getText().toString());
-        target_b = Double.parseDouble(edit_a.getText().toString());
+        target_a = Double.parseDouble(edit_a.getText().toString());
+        target_b = Double.parseDouble(edit_b.getText().toString());
         grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
         thickness_prosthesis = Double.parseDouble(edit_prosthesis.getText().toString());
 
@@ -521,11 +520,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //----------------------------------------------------------------------------------------------
     public void cromossomo_para_LAB() {
         for (int index = 0; index < QTDE_CROMOSSOMOS; index++) {
-            XYZSet novo_set = new XYZSet();
             if (verifica_R_linha(index)) {
-                novo_set.spectrumToXYZ(R_linha[index]);
-                novo_set.XYZtoLAB();
-                cores_LAB[index] = novo_set.getLAB();
+                cores_LAB[index] = ColorTransformation.spectrumToLAB(
+                        R_linha[index], ColorTransformation.ILLUMINANT_D65_10_DEGREES
+                );
             }
         }
     }

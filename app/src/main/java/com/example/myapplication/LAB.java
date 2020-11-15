@@ -3,25 +3,20 @@ package com.example.myapplication;
 public class LAB {
     protected double L, A, B;
 
-    /**
-     * Flag set to true if the coordinates are valid.
-     */
-    protected boolean valid;			//
-
+    protected int illuminant;
 
     public LAB( double L, double A, double B) {
+        new LAB(L, A, B, ColorTransformation.ILLUMINANT_D65_10_DEGREES);
+    }
+
+    public LAB( double L, double A, double B, int illuminant) {
         this.L = L;
         this.A = A;
         this.B = B;
-        valid = true;
+        this.illuminant = illuminant;
     }
 
-    public LAB( ) {
-    }
-
-    public double getL() {
-        return L;
-    }
+    public double getL() { return L; }
 
     public double getA() {
         return A;
@@ -31,22 +26,6 @@ public class LAB {
         return B;
     }
 
-    /**
-     * Returns true if the coordinates are valid.
-     */
-    public boolean isValid() {
-        return valid;
-    }
-
-    /**
-     * Sets the RGB coordinates to specified values. The values
-     * must be 0 to 255.
-     */
-    public void setLAB( double L, double A, double B ) {
-        this.L = L;
-        this.A = A;
-        this.B = B;
-        this.valid = true;		// of course, it's true
-    }
+    public int getIlluminant() { return illuminant; }
 
 }

@@ -58,7 +58,6 @@ public class ImageActivity extends AppCompatActivity {
         double L_avg = 0;
         double A_avg = 0;
         double B_avg = 0;
-        XYZSet xyzSet = new XYZSet();
         LAB lab;
         int size = bitmap.getWidth()*bitmap.getHeight();
         int[] pixels = new int[size];
@@ -67,8 +66,7 @@ public class ImageActivity extends AppCompatActivity {
             r_int = (pixel >> 16) & 0xff;
             g_int = (pixel >> 8) & 0xff;
             b_int = pixel & 0xff;
-            xyzSet.RGBtoLAB(r_int, g_int, b_int);
-            lab = xyzSet.getLAB();
+            lab = ColorTransformation.RGBtoLAB(r_int, g_int, b_int);
             L_avg += lab.getL();
             A_avg += lab.getA();
             B_avg += lab.getB();

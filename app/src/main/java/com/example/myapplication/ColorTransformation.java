@@ -8,16 +8,8 @@ import java.util.HashMap;
  */
 public class ColorTransformation {
 
-    static int ILLUMINANT_D65_10_DEGREES = 1;
-    static int ILLUMINANT_A_10_DEGREES = 2;
-
-    static HashMap<Integer,double[]> whitePointReference = new HashMap<>();
-    static {
-        double[] d65_10degrees_WhiteReference = {0.948242, 1, 1.073955};
-        double[] a_10degrees_WhiteReference = {1.111493, 1, 0.35207};
-        whitePointReference.put(ILLUMINANT_D65_10_DEGREES, d65_10degrees_WhiteReference);
-        whitePointReference.put(ILLUMINANT_A_10_DEGREES, a_10degrees_WhiteReference);
-    }
+    static int ILLUMINANT_D65_10_DEGREES = 0;
+    static int ILLUMINANT_A_10_DEGREES = 1;
 
     /**
      * x color matching function tabulated at 10-nm intervals.
@@ -66,48 +58,41 @@ public class ColorTransformation {
     };
 
 
-    static HashMap<Integer,double[]> spectralDensity = new HashMap<>();
-    static {
-        double[] d65_10degrees_SpectralDensity = {
-                82.78, 91.51, 93.45, 86.70,
-                104.88, 117.03, 117.83, 114.87,
-                115.94, 108.82, 109.36, 107.81,
-                104.79, 107.69, 104.41, 104.05,
-                100.00, 96.33, 95.79, 88.68, 90.00,
-                89.59, 87.69, 83.28, 83.69, 80.02,
-                80.21, 82.27, 78.27, 69.71,	71.60
-        };
-        double[] a_10degrees_SpectralDensity = {
-                14.72, 17.69, 21.01, 24.68,
-                28.71, 33.10, 37.82, 42.88,
-                48.25, 53.92, 59.87, 66.07,
-                72.50, 79.14, 85.95, 92.91,
-                100.00, 107.18, 114.43, 121.72,
-                129.03, 136.33, 143.60, 150.81,
-                157.95, 164.99, 171.92, 178.72,
-                185.38, 191.88, 198.20
-        };
-        whitePointReference.put(ILLUMINANT_D65_10_DEGREES, d65_10degrees_SpectralDensity);
-        whitePointReference.put(ILLUMINANT_A_10_DEGREES, a_10degrees_SpectralDensity);
-    }
+    static double[][] whitePointReference = {{0.948242, 1, 1.073955},{1.111493, 1, 0.35207}};
 
-    static HashMap<Integer, Double> spectralReference = new HashMap<>();
-    static {
-        spectralReference.put(ILLUMINANT_D65_10_DEGREES, 1161.9469);
-        spectralReference.put(ILLUMINANT_A_10_DEGREES, 1137.80110);
-    }
+    static double[][] spectralDensity = {
+            {
+                    82.78, 91.51, 93.45, 86.70, 104.88,
+                    117.03, 117.83, 114.87, 115.94, 108.82,
+                    109.36, 107.81, 104.79, 107.69, 104.41,
+                    104.05, 100.00, 96.33, 95.79, 88.68,
+                    90.00, 89.59, 87.69, 83.28, 83.69,
+                    80.02, 80.21, 82.27, 78.27, 69.71,
+                    71.60
+            },
+            {
+                    14.72, 17.69, 21.01, 24.68, 28.71,
+                    33.10, 37.82, 42.88, 48.25, 53.92,
+                    59.87, 66.07, 72.50, 79.14, 85.95,
+                    92.91, 100.00, 107.18, 114.43, 121.72,
+                    129.03, 136.33, 143.60, 150.81, 157.95,
+                    164.99, 171.92, 178.72, 185.38, 191.88,
+                    198.20
+            }
+    };
+
+    static double[] spectralReference = {1161.9469, 1137.80110};
 
     /**
      * Computes XYZ coordinates for a spectrum.
      * @param data an array of 31 spectrum data points.
      */
     static XYZ spectrumToXYZ(double[] data, int illuminant) {
-
         double X = 0.f;
         double Y = 0.f;
         double Z = 0.f;
-        double N = spectralReference.get(illuminant);
-        double[] spectralDensityIlluminant = spectralDensity.get(illuminant);
+        double N = spectralReference[illuminant];
+        double[] spectralDensityIlluminant = spectralDensity[illuminant];
 
         // integrate
         for( int wl = 0; wl < 31; wl++) {
@@ -171,7 +156,7 @@ public class ColorTransformation {
         double fx, fy, fz;
 
         int illuminant = xyz.getIlluminant();
-        double[] reference = whitePointReference.get(illuminant);
+        double[] reference = whitePointReference[illuminant];
         fx = f(xyz.getX()/reference[0]);
         fy = f(xyz.getY()/reference[1]);
         fz = f(xyz.getZ()/reference[2]);
@@ -181,6 +166,9 @@ public class ColorTransformation {
         double b = 200*(fy-fz);
 
         return new LAB(L, a, b, illuminant);
-
     }
+
+    /**
+     * Converts
+     */
 }

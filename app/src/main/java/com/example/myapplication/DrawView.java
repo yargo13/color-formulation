@@ -178,8 +178,8 @@ public class DrawView extends View {
                         // calculate the radius from the touch to the center of the
                         // ball
                         double radCircle = Math
-                                .sqrt((double) (((centerX - X) * (centerX - X)) + (centerY - Y)
-                                        * (centerY - Y)));
+                                .sqrt(((centerX - X) * (centerX - X)) + (centerY - Y)
+                                        * (centerY - Y));
 
                         if (radCircle < ball.getWidthOfBall()) {
 
@@ -252,8 +252,7 @@ public class DrawView extends View {
             int right = (int) (mCropRect.right * widthRate);
             int bottom = (int) (mCropRect.bottom * heightRate);
             Bitmap croppedBitmap = Bitmap.createBitmap(sourceBitmap, left, top, right - left, bottom - top);
-            BitmapDrawable drawable = new BitmapDrawable(getResources(), croppedBitmap);
-            return drawable;
+            return new BitmapDrawable(getResources(), croppedBitmap);
         }
         return null;
     }

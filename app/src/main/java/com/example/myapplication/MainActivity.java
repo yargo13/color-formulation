@@ -31,27 +31,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
 
     double target_L, target_a, target_b, grams_prosthesis, thickness_prosthesis;
-    Chromosome gene[] = new Chromosome[QTDE_CROMOSSOMOS];
-    int top_cromossomos[] = new int[QTDE_CROMOSSOMOS_FINAL];
-    double top_fitting[] = new double[QTDE_CROMOSSOMOS_FINAL];
+    Chromosome[] gene = new Chromosome[QTDE_CROMOSSOMOS];
+    int[] top_cromossomos = new int[QTDE_CROMOSSOMOS_FINAL];
+    double[] top_fitting = new double[QTDE_CROMOSSOMOS_FINAL];
 
-    double R_inf[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double Rsp[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double Rsb[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double Rp[] = new double[QTDE_LAMBDA];
-    double Rb[] = new double[QTDE_LAMBDA];
+    double[][] R_inf = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double[][] Rsp = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double[][] Rsb = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double[] Rp = new double[QTDE_LAMBDA];
+    double[] Rb = new double[QTDE_LAMBDA];
 
-    double S[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double K[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double K_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-    double S_cromossomo[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    double[][] S = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double[][] K = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    double[][] K_cromossomo = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    double[][] S_cromossomo = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
 
-    double R_linha[][] = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-    LAB cores_LAB[] = new LAB[QTDE_CROMOSSOMOS];
+    double[][] R_linha = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    LAB[] cores_LAB = new LAB[QTDE_CROMOSSOMOS];
 
-    double fitting[] = new double[QTDE_CROMOSSOMOS];
+    double[] fitting = new double[QTDE_CROMOSSOMOS];
     boolean ESPECTROFOTOMETRO = true;
-    boolean invalid_pigments[] = new boolean[QTDE_PIGMENTOS];
+    boolean[] invalid_pigments = new boolean[QTDE_PIGMENTOS];
 
     private String[] backgrounds = {"Preto Ideal", "Preto", "Branco", "Pele"};
     private String chosen_background;
@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         int top_pigment;
         float weight_top_pigment;
         float[] weights_pigments = new float[QTDE_PIGMENTOS];
-        int top_pigments[] = new int[QTDE_PIGMENTOS_FINAL];
+        int[] top_pigments = new int[QTDE_PIGMENTOS_FINAL];
 
         for (int i = 0; i < QTDE_CROMOSSOMOS_FINAL; i++){
             for (int pigment = 0; pigment < QTDE_PIGMENTOS; pigment ++){
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         int tamanho_cromossomo = fitting.length;
         int num_genes_mantem = 0;
         int index_genes_novo = 0;
-        Chromosome genes_novo[] = new Chromosome[QTDE_CROMOSSOMOS+1];
+        Chromosome[] genes_novo = new Chromosome[QTDE_CROMOSSOMOS+1];
         for (int i = 0; i<QTDE_CROMOSSOMOS+1; i++){
             genes_novo[i] = new Chromosome();
         }
@@ -330,8 +330,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //----------------------------------------------------------------------------------------------
 
     public void calculo_curva_espectral() {
-        double a[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-        double b[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+        double[][] a = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+        double[][] b = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
 
         for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
             Rp[lambda] /= 100;
@@ -487,10 +487,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public double[][] correcao_R(double R[][]) {
+    public double[][] correcao_R(double[][] R) {
         double K1 = 0.039;
         double K2 = 0.540;
-        double R_linha2[][] = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+        double[][] R_linha2 = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
 
         for (int cromossomo = 0; cromossomo < QTDE_PIGMENTOS; cromossomo++) {
             for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
@@ -503,10 +503,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public double[] correcao_R(double R[]) {
+    public double[] correcao_R(double[] R) {
         double K1 = 0.039;
         double K2 = 0.540;
-        double R_linha2[] = new double[QTDE_LAMBDA];
+        double[] R_linha2 = new double[QTDE_LAMBDA];
 
         for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
 

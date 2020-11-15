@@ -24,7 +24,7 @@ public class ColorTransformation {
      * (10-degree 1964 CIE suppl. std. observer)
      * de 400 a 700 de 10 em 10 = 31
      */
-    static double Px[] = {
+    static double[] Px = {
             0.01911d, 0.08474d, 0.20449d, 0.31468d,
             0.38373d, 0.37070d, 0.30227d, 0.19562d,
             0.08051d, 0.01617d, 0.00382d, 0.03747d,
@@ -39,7 +39,7 @@ public class ColorTransformation {
      * y color matching function tabulated at 10-nm intervals.
      * (10-degree 1964 CIE suppl. std. observer)
      */
-    static double Py[] = {
+    static double[] Py = {
             0.00200d, 0.00876d, 0.02139d, 0.03868d,
             0.06208d, 0.08946d, 0.12820d, 0.18519d,
             0.25359d, 0.33913d, 0.46078d, 0.60674d,
@@ -54,7 +54,7 @@ public class ColorTransformation {
      * z color matching function tabulated at 10-nm intervals.
      * (10-degree 1964 CIE suppl. std. observer)
      */
-    static double Pz[] = {
+    static double[] Pz = {
             0.08601d, 0.38937d, 0.97254d, 1.55348d,
             1.96728d, 1.99480d, 1.74537d, 1.31756d,
             0.77213d, 0.41525d, 0.21850d, 0.11204d,
@@ -101,7 +101,7 @@ public class ColorTransformation {
      * Computes XYZ coordinates for a spectrum.
      * @param data an array of 31 spectrum data points.
      */
-    static XYZ spectrumToXYZ(double data[], int illuminant) {
+    static XYZ spectrumToXYZ(double[] data, int illuminant) {
 
         double X = 0.f;
         double Y = 0.f;
@@ -122,7 +122,7 @@ public class ColorTransformation {
         return new XYZ(X, Y, Z);
     }
 
-    static LAB spectrumToLAB(double data[], int illuminant) {
+    static LAB spectrumToLAB(double[] data, int illuminant) {
         return XYZtoLAB(spectrumToXYZ(data, illuminant));
     }
 

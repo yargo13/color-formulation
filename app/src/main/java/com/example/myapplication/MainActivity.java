@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     double[][] S = new double[NUM_COLORANTS][NUM_LAMBDA];
     double[][] K = new double[NUM_COLORANTS][NUM_LAMBDA];
-    double[][] K_CHROMOSSOME = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
+    double[][] K_CHROMOSOME = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
     double[][] S_CHROMOSOME = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
 
     double[][] corrected_R = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
 
         Spinner select_background = findViewById(R.id.select_background);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this,
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this,
                 android.R.layout.simple_spinner_item, backgrounds);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             startActivityForResult(intent, LAB_REQUEST_CODE);
         }
         if(requestCode == LAB_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            double value_a = data.getDoubleExtra(ImageActivity.value_a, 0);
             edit_a.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_a, 0)));
             edit_b.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_b, 0)));
             edit_L.setText(String.valueOf(data.getDoubleExtra(ImageActivity.value_L, 0)));
@@ -168,28 +167,28 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     public String createTextForCromossomes(double grams_prosthesis){
-        String text_pigments = "";
+        StringBuilder text_pigments = new StringBuilder();
         double grams_pigment;
         for (int i = 0; i< NUM_OF_TOP_CHROMOSOMES; i++){
             //text_pigments += "Option/Opção "+(i+1)+" (ΔEab "+String.format("%.2f", 1/top_fitting[i])+" Fitting "+String.format("%.2f", top_fitting[i])+"):\n";
-            text_pigments += "Option/Opção "+(i+1)+":\nΔE*D65 = "+String.format("%.2f", fitting_D65[i])+ "; ΔE*IlA = "+String.format("%.2f", fittingIlA[i]);
-            text_pigments += "; Fitting = "+String.format("%.2f", top_fitting[i])+"\n";
+            text_pigments.append("Option/Opção ").append(i + 1).append(":\nΔE*D65 = ").append(String.format("%.2f", fitting_D65[i])).append("; ΔE*IlA = ").append(String.format("%.2f", fittingIlA[i]));
+            text_pigments.append("; Fitting = ").append(String.format("%.2f", top_fitting[i])).append("\n");
             for (int pigment = 0; pigment< NUM_COLORANTS; pigment++){
                 if (pigment == ELASTOMER_GENE) continue;
                 grams_pigment = gene[top_chromosomes[i]].weights[pigment]*0.00001*grams_prosthesis;
                 if (grams_pigment < 0.01) continue;
-                text_pigments += Chromosome.pigment_names[pigment];
-                text_pigments += ": ";
-                text_pigments += String.format(Locale.getDefault(), "%.2f", grams_pigment);
-                text_pigments += "g\n";
+                text_pigments.append(Chromosome.pigment_names[pigment]);
+                text_pigments.append(": ");
+                text_pigments.append(String.format(Locale.getDefault(), "%.2f", grams_pigment));
+                text_pigments.append("g\n");
             }
-            text_pigments += "\n";
+            text_pigments.append("\n");
         }
 
         double totalTime = (System.nanoTime() - startTime)/1000000000;
-        text_pigments += "\n Execution time: " + String.format(Locale.getDefault(), "%.2f", totalTime) + "s\n";
+        text_pigments.append("\n Execution time: ").append(String.format(Locale.getDefault(), "%.2f", totalTime)).append("s\n");
 
-        return text_pigments;
+        return text_pigments.toString();
     }
     //----------------------------------------------------------------------------------------------
     public void iterateCromossomes(boolean useIlluminantA){
@@ -197,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             calculo_k_e_s_mistura();
             chromosome_reflectance_calculation();
             chromosome_to_LAB();
-            calculo_fitting(useIlluminantA);
+            calculate_fitting(useIlluminantA);
             if (iter == NUM_ITERATIONS - 1) selectTopCromossomes();
             else selection();
         }
@@ -268,11 +267,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         for (int i = 0; i< NUM_CHROMOSOMES +1; i++){
             genes_novo[i] = new Chromosome();
         }
-        int qtde_cromossomos_invalidos = 0;
 
         // mean fitting calculation
-        for (int index = 0; index < chromosome_lenght; index++){
-            fitting_media += fitting[index];
+        for (double v : fitting) {
+            fitting_media += v;
         }
         fitting_media /= fitting.length;
 
@@ -311,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public void calculo_fitting(boolean useIlluminantA) {
+    public void calculate_fitting(boolean useIlluminantA) {
         /*
         double L = 70.50;
         double A = 5.69;
@@ -340,7 +338,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
-        return;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -377,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Rsb = R_correction(Rsb);
         R_inf = R_correction(R_inf);
 
-        double arc_cotgh = 0;
+        double arc_cotgh;
 
         for (int colorant = 0; colorant < NUM_COLORANTS; colorant++) {
             for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) /*from 400 to 700 (steps of 10nm) = NUM_LAMBDA*/ {
@@ -446,15 +443,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void calculo_k_e_s_mistura() {
         for (int cromo = 0; cromo < NUM_CHROMOSOMES; cromo++) {
             for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) {
-                K_CHROMOSSOME[cromo][lambda] = 0;
+                K_CHROMOSOME[cromo][lambda] = 0;
                 S_CHROMOSOME[cromo][lambda] = 0;
                 for (int pigmento = 0; pigmento < NUM_COLORANTS; pigmento++) {
 
                     if (pigmento == ELASTOMER_GENE) {
-                        K_CHROMOSSOME[cromo][lambda] += K[pigmento][lambda];
+                        K_CHROMOSOME[cromo][lambda] += K[pigmento][lambda];
                         S_CHROMOSOME[cromo][lambda] += S[pigmento][lambda];
                     } else {
-                        K_CHROMOSSOME[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
+                        K_CHROMOSOME[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
                         S_CHROMOSOME[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
                     }
                 }
@@ -470,19 +467,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public double calculate_R(int lambda, int cromossomo){
         double a, b, R;
         double S = S_CHROMOSOME[cromossomo][lambda];
-        double K = K_CHROMOSSOME[cromossomo][lambda];
+        double K = K_CHROMOSOME[cromossomo][lambda];
 
         a = 1 + K/S;
         b = Math.sqrt(a*a - 1);
 
-        if(chosen_background == "Ideal black/Preto Ideal"){
+        if(chosen_background.equals("Ideal black/Preto Ideal")){
             R = 1/(a+b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background == "Black/Preto"){
+        else if(chosen_background.equals("Black/Preto")){
             R = (1 - Rp[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rp[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background == "White/Branco"){
+        else if(chosen_background.equals("White/Branco")){
             R = (1 - Rb[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rb[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }

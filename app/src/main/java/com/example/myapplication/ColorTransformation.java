@@ -1,7 +1,5 @@
 package com.example.myapplication;
 
-import java.util.HashMap;
-
 /**
  * This class implements conversions between RGB, CIE XYZ and CIELAB color
  * spaces.

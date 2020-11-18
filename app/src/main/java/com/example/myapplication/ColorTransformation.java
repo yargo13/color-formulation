@@ -130,7 +130,7 @@ public class ColorTransformation {
         Y /= N;
         Z /= N;
 
-        return new XYZ(X, Y, Z);
+        return new XYZ(X, Y, Z, illuminant);
     }
 
     static LAB spectrumToLAB(double[] data, int illuminant) {

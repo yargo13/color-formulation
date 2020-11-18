@@ -18,50 +18,55 @@ import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
-    int QTDE_CROMOSSOMOS = 1000;
-    int QTDE_PIGMENTOS = 21;
-    int QTDE_LAMBDA = 31;
-    int PIGMENTO_SILICONE = 20;
-    int QTDE_CROMOSSOMOS_FINAL = 5;
-    int QTDE_PIGMENTOS_FINAL = 5;
-    int NUM_ITERACOES = 100;
+    int NUM_CHROMOSOMES = 1000; //number of chromosomes/color formulations
+    int NUM_COLORANTS = 21; // number of colorants(pigments and flocking) and elastomer.
+    int NUM_LAMBDA = 31; //number of wavelengths (400nm to 700nm - in steps of 10nm)
+    int ELASTOMER_GENE = 20; //elastomer position on the gene sequence ("loci")
+    int NUM_OF_TOP_CHROMOSOMES = 5; //number of top formulations
+    int NUM_OF_TOP_GENES = 5; //number of top genes
+    int NUM_ITERATIONS = 100; //number of iterations
     double MUTATION_RATE = 0.1;
-    double ESPESSURA_AMOSTRA = 2.0;//em milímetros
+    double SAMPLE_THICKNESS = 2.0;//thickness of the prosthesis in millimeters
 
     public static final String EXTRA_TEXT_PIGMENTS = "com.application.myApplication.TEXT_PIGMENTS";
 
     double grams_prosthesis, thickness_prosthesis;
     LAB target;
     LAB target_illA;
-    Chromosome[] gene = new Chromosome[QTDE_CROMOSSOMOS];
-    int[] top_cromossomos = new int[QTDE_CROMOSSOMOS_FINAL];
-    double[] top_fitting = new double[QTDE_CROMOSSOMOS_FINAL];
+    Chromosome[] gene = new Chromosome[NUM_CHROMOSOMES];
+    int[] top_chromosomes = new int[NUM_OF_TOP_CHROMOSOMES];
+    double[] top_fitting = new double[NUM_OF_TOP_CHROMOSOMES];
 
-    double[][] R_inf = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double[][] Rsp = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double[][] Rsb = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double[] Rp = new double[QTDE_LAMBDA];
-    double[] Rb = new double[QTDE_LAMBDA];
+    double[][] R_inf = new double[NUM_COLORANTS][NUM_LAMBDA];
+    double[][] Rsp = new double[NUM_COLORANTS][NUM_LAMBDA];
+    double[][] Rsb = new double[NUM_COLORANTS][NUM_LAMBDA];
+    double[] Rp = new double[NUM_LAMBDA];
+    double[] Rb = new double[NUM_LAMBDA];
 
-    double[][] S = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double[][] K = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-    double[][] K_cromossomo = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-    double[][] S_cromossomo = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
+    double[][] S = new double[NUM_COLORANTS][NUM_LAMBDA];
+    double[][] K = new double[NUM_COLORANTS][NUM_LAMBDA];
+    double[][] K_CHROMOSSOME = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
+    double[][] S_CHROMOSOME = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
 
-    double[][] R_linha = new double[QTDE_CROMOSSOMOS][QTDE_LAMBDA];
-    LAB[] cores_LAB = new LAB[QTDE_CROMOSSOMOS];
-    LAB[] cores_LAB_illA = new LAB[QTDE_CROMOSSOMOS];
+    double[][] corrected_R = new double[NUM_CHROMOSOMES][NUM_LAMBDA];
+    LAB[] LAB_colors = new LAB[NUM_CHROMOSOMES];
+    LAB[] LAB_colors_illuminantA = new LAB[NUM_CHROMOSOMES];
 
-    double[] fitting = new double[QTDE_CROMOSSOMOS];
-    boolean ESPECTROFOTOMETRO = true;
-    boolean[] invalid_pigments = new boolean[QTDE_PIGMENTOS];
+    double[] fitting = new double[NUM_CHROMOSOMES];
+    double[] fitting_D65 = new double[NUM_CHROMOSOMES];
+    double[] fittingIlA = new double[NUM_CHROMOSOMES];
+    boolean SPECTROPHOTOMETER = true;
+    boolean[] invalid_colorants = new boolean[NUM_COLORANTS];
 
-    private String[] backgrounds = {"Preto Ideal", "Preto", "Branco", "Pele"};
+    private String[] backgrounds = {"" +
+            "Ideal black/Preto Ideal", "Black/Preto", "White/Branco", "Light Skin/Pele clara"};
     private String chosen_background;
 
     private static final int GALLERY_REQUEST_CODE = 1234;
     private static final int LAB_REQUEST_CODE = 1235;
     public static final String EXTRA_URI_PICTURE = "com.application.myApplication.SELECTED_IMAGE";
+
+    double startTime;
 
     EditText edit_a;
     EditText edit_b;
@@ -95,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Selecione uma imagem"), GALLERY_REQUEST_CODE);
+                startActivityForResult(Intent.createChooser(intent, "Select image/Selecione uma imagem"), GALLERY_REQUEST_CODE);
             }
         });
     }
@@ -103,10 +108,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-             Uri imageData = data.getData();
-             Intent intent = new Intent(this, ImageActivity.class);
-             intent.putExtra(EXTRA_URI_PICTURE, imageData.toString());
-             startActivityForResult(intent, LAB_REQUEST_CODE);
+            Uri imageData = data.getData();
+            Intent intent = new Intent(this, ImageActivity.class);
+            intent.putExtra(EXTRA_URI_PICTURE, imageData.toString());
+            startActivityForResult(intent, LAB_REQUEST_CODE);
         }
         if(requestCode == LAB_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             double value_a = data.getDoubleExtra(ImageActivity.value_a, 0);
@@ -131,9 +136,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      * Called when the user taps the Send button
      */
     public void selectChromosomes(View view) {
-        popular_variaveis();
-        calculo_curva_espectral();
-        criacao_populacao();
+        startTime = System.nanoTime();
+
+        populate_variables();
+        spectral_curve_calculation();
+        create_population();
 
         double target_L = Double.parseDouble(edit_L.getText().toString());
         double target_a = Double.parseDouble(edit_a.getText().toString());
@@ -148,8 +155,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         iterateCromossomes(false);
 
         selectTopPigments();
-        Chromosome.set_invalid_pigments(invalid_pigments);
-        for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
+        Chromosome.set_invalid_pigments(invalid_colorants);
+        for (int n = 0; n < NUM_CHROMOSOMES; n++) {
             gene[n].initialize_weights();
         }
 
@@ -163,11 +170,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public String createTextForCromossomes(double grams_prosthesis){
         String text_pigments = "";
         double grams_pigment;
-        for (int i=0;i< QTDE_CROMOSSOMOS_FINAL; i++){
-            text_pigments += "Opção "+(i+1)+" (ΔEab "+String.format("%.2f", 1/top_fitting[i])+" Fitting "+String.format("%.2f", top_fitting[i])+"):\n";
-            for (int pigment=0; pigment<QTDE_PIGMENTOS; pigment++){
-                if (pigment == PIGMENTO_SILICONE) continue;
-                grams_pigment = gene[top_cromossomos[i]].weights[pigment]*0.00001*grams_prosthesis;
+        for (int i = 0; i< NUM_OF_TOP_CHROMOSOMES; i++){
+            //text_pigments += "Option/Opção "+(i+1)+" (ΔEab "+String.format("%.2f", 1/top_fitting[i])+" Fitting "+String.format("%.2f", top_fitting[i])+"):\n";
+            text_pigments += "Option/Opção "+(i+1)+":\nΔE*D65 = "+String.format("%.2f", fitting_D65[i])+ "; ΔE*IlA = "+String.format("%.2f", fittingIlA[i]);
+            text_pigments += "; Fitting = "+String.format("%.2f", top_fitting[i])+"\n";
+            for (int pigment = 0; pigment< NUM_COLORANTS; pigment++){
+                if (pigment == ELASTOMER_GENE) continue;
+                grams_pigment = gene[top_chromosomes[i]].weights[pigment]*0.00001*grams_prosthesis;
                 if (grams_pigment < 0.01) continue;
                 text_pigments += Chromosome.pigment_names[pigment];
                 text_pigments += ": ";
@@ -176,16 +185,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
             text_pigments += "\n";
         }
+
+        double totalTime = (System.nanoTime() - startTime)/1000000000;
+        text_pigments += "\n Execution time: " + String.format(Locale.getDefault(), "%.2f", totalTime) + "s\n";
+
         return text_pigments;
     }
     //----------------------------------------------------------------------------------------------
     public void iterateCromossomes(boolean useIlluminantA){
-        for (int iter = 0; iter < NUM_ITERACOES; iter++) {
+        for (int iter = 0; iter < NUM_ITERATIONS; iter++) {
             calculo_k_e_s_mistura();
-            calculo_refletancia_cromossomo();
-            cromossomo_para_LAB();
+            chromosome_reflectance_calculation();
+            chromosome_to_LAB();
             calculo_fitting(useIlluminantA);
-            if (iter == NUM_ITERACOES - 1) selectTopCromossomes();
+            if (iter == NUM_ITERATIONS - 1) selectTopCromossomes();
             else selection();
         }
     }
@@ -194,14 +207,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void selectTopCromossomes(){
 
-        for (int n=0; n<QTDE_CROMOSSOMOS_FINAL; n++){
-            for (int cromossomo=1; cromossomo<QTDE_CROMOSSOMOS; cromossomo++){
-                if (fitting[cromossomo] > fitting[top_cromossomos[n]]) {
-                    top_cromossomos[n] = cromossomo;
+        for (int n = 0; n< NUM_OF_TOP_CHROMOSOMES; n++){
+            for (int chromosome = 1; chromosome< NUM_CHROMOSOMES; chromosome++){
+                if (fitting[chromosome] > fitting[top_chromosomes[n]]) {
+                    top_chromosomes[n] = chromosome;
                 }
             }
-            top_fitting[n] = fitting[top_cromossomos[n]];
-            fitting[top_cromossomos[n]] = 0;
+            top_fitting[n] = fitting[top_chromosomes[n]];
+            fitting[top_chromosomes[n]] = 0;
         }
     }
 
@@ -209,19 +222,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void selectTopPigments(){
         int top_pigment;
         float weight_top_pigment;
-        float[] weights_pigments = new float[QTDE_PIGMENTOS];
-        int[] top_pigments = new int[QTDE_PIGMENTOS_FINAL];
+        float[] weights_pigments = new float[NUM_COLORANTS];
+        int[] top_pigments = new int[NUM_OF_TOP_GENES];
 
-        for (int i = 0; i < QTDE_CROMOSSOMOS_FINAL; i++){
-            for (int pigment = 0; pigment < QTDE_PIGMENTOS; pigment ++){
-                weights_pigments[pigment] += gene[top_cromossomos[i]].weights[pigment];
+        for (int i = 0; i < NUM_OF_TOP_CHROMOSOMES; i++){
+            for (int pigment = 0; pigment < NUM_COLORANTS; pigment ++){
+                weights_pigments[pigment] += gene[top_chromosomes[i]].weights[pigment];
             }
         }
 
-        for (int i = 0; i < QTDE_PIGMENTOS_FINAL; i++){
+        for (int i = 0; i < NUM_OF_TOP_GENES; i++){
             top_pigment = 0;
             weight_top_pigment = 0;
-            for (int pigment = 0; pigment < QTDE_PIGMENTOS; pigment++) {
+            for (int pigment = 0; pigment < NUM_COLORANTS; pigment++) {
                 if (weights_pigments[pigment] > weight_top_pigment) {
                     top_pigment = pigment;
                     weight_top_pigment = weights_pigments[pigment];
@@ -235,10 +248,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             weights_pigments[top_pigment] = 0;
         }
 
-        Arrays.fill(invalid_pigments, true);
-        for (int i = 0; i < QTDE_PIGMENTOS_FINAL; i++){
+        Arrays.fill(invalid_colorants, true);
+        for (int i = 0; i < NUM_OF_TOP_GENES; i++){
             if (top_pigments[i] == -1) break;
-            invalid_pigments[top_pigments[i]] = false;
+            invalid_colorants[top_pigments[i]] = false;
         }
 
     }
@@ -248,26 +261,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void selection() {
 
         double fitting_media = 0;
-        int tamanho_cromossomo = fitting.length;
+        int chromosome_lenght = fitting.length;
         int num_genes_mantem = 0;
-        int index_genes_novo = 0;
-        Chromosome[] genes_novo = new Chromosome[QTDE_CROMOSSOMOS+1];
-        for (int i = 0; i<QTDE_CROMOSSOMOS+1; i++){
+        int index_new_gene = 0;
+        Chromosome[] genes_novo = new Chromosome[NUM_CHROMOSOMES +1];
+        for (int i = 0; i< NUM_CHROMOSOMES +1; i++){
             genes_novo[i] = new Chromosome();
         }
         int qtde_cromossomos_invalidos = 0;
 
-        // calculo media fitting
-        for (int index = 0; index < tamanho_cromossomo; index++){
+        // mean fitting calculation
+        for (int index = 0; index < chromosome_lenght; index++){
             fitting_media += fitting[index];
         }
         fitting_media /= fitting.length;
 
-        // selecionando apenas os que estão acima da media
-        for (int index = 0; index < tamanho_cromossomo; index++){
+        // selection: above average chromosomes
+        for (int index = 0; index < chromosome_lenght; index++){
             if (fitting[index] > fitting_media) {
-                genes_novo[index_genes_novo] = gene[index];
-                index_genes_novo++;
+                genes_novo[index_new_gene] = gene[index];
+                index_new_gene++;
                 num_genes_mantem++;
             }
         }
@@ -276,20 +289,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         //crossover entre itens aleatorios
         //local do crossover tambem aleatorio
 
-        while (index_genes_novo < QTDE_CROMOSSOMOS) {
-            //selecionando cromossomos para crossover
+        while (index_new_gene < NUM_CHROMOSOMES) {
+            //crossover: chromosomes selection
             int cromossomo_crossover_1 = (int) (Math.random() * num_genes_mantem);
             int cromossomo_crossover_2 = (int) (Math.random() * num_genes_mantem);
 
-            //transferindo valores para array genes_novos
-            Chromosome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_genes_novo], genes_novo[index_genes_novo + 1]);
-            index_genes_novo += 2;
+            //transfer values to index_new_gene array
+            Chromosome.crossover(gene[cromossomo_crossover_1], gene[cromossomo_crossover_2], genes_novo[index_new_gene], genes_novo[index_new_gene + 1]);
+            index_new_gene += 2;
         }
 
-        // Causa mutações
-        int num_mutation = (int) (MUTATION_RATE*(QTDE_CROMOSSOMOS-1)* Chromosome.NUM_BITS);
+        // Mutation
+        int num_mutation = (int) (MUTATION_RATE*(NUM_CHROMOSOMES -1)* Chromosome.NUM_BITS);
         for (int i=0; i<num_mutation; i++){
-            int cromossomo_mutacao = (int) (Math.random() * QTDE_CROMOSSOMOS);
+            int cromossomo_mutacao = (int) (Math.random() * NUM_CHROMOSOMES);
             genes_novo[cromossomo_mutacao].mutate();
         }
 
@@ -305,22 +318,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         double B = 16.42;
          */
 
-        for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++){
-            if (cores_LAB[cromossomo].getL() < 0 || cores_LAB[cromossomo].getL() > 100 ||
-                    cores_LAB[cromossomo].getA() < -128 || cores_LAB[cromossomo].getA() > 128 ||
-                    cores_LAB[cromossomo].getB() < -128 || cores_LAB[cromossomo].getB() > 128) {
-                fitting[cromossomo] = 0;
+        for (int chromosome = 0; chromosome < NUM_CHROMOSOMES; chromosome++){
+            if (LAB_colors[chromosome].getL() < 0 || LAB_colors[chromosome].getL() > 100 ||
+                    LAB_colors[chromosome].getA() < -128 || LAB_colors[chromosome].getA() > 128 ||
+                    LAB_colors[chromosome].getB() < -128 || LAB_colors[chromosome].getB() > 128) {
+                fitting[chromosome] = 0;
             }
             else {
 
-                double fittingD65 = Math.sqrt(Math.pow(cores_LAB[cromossomo].getL() - target.getL(), 2)
-                        + Math.pow(cores_LAB[cromossomo].getA() - target.getA(), 2)
-                        + Math.pow(cores_LAB[cromossomo].getB() - target.getB(), 2));
-                double fittingA = Math.sqrt(Math.pow(cores_LAB_illA[cromossomo].getL() - target_illA.getL(), 2)
-                        + Math.pow(cores_LAB_illA[cromossomo].getA() - target_illA.getA(), 2)
-                        + Math.pow(cores_LAB_illA[cromossomo].getB() - target_illA.getB(), 2));
+                double fittingD65 = Math.sqrt(Math.pow(LAB_colors[chromosome].getL() - target.getL(), 2)
+                        + Math.pow(LAB_colors[chromosome].getA() - target.getA(), 2)
+                        + Math.pow(LAB_colors[chromosome].getB() - target.getB(), 2));
 
-                fitting[cromossomo] = useIlluminantA ? 1 / (fittingD65 + 0.00001) : 1 / (fittingA + fittingD65 + 0.00001);
+                double fittingA = Math.sqrt(Math.pow(LAB_colors_illuminantA[chromosome].getL() - target_illA.getL(), 2)
+                        + Math.pow(LAB_colors_illuminantA[chromosome].getA() - target_illA.getA(), 2)
+                        + Math.pow(LAB_colors_illuminantA[chromosome].getB() - target_illA.getB(), 2));
+
+                fitting[chromosome] = useIlluminantA ? 1 / (fittingA + fittingD65 + 0.00001) : 1 / (fittingD65 + 0.00001);
+                fitting_D65[chromosome] = fittingD65;
+                fittingIlA[chromosome] = fittingA;
             }
         }
 
@@ -329,10 +345,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //----------------------------------------------------------------------------------------------
 
-    public void criacao_populacao() {
-        Chromosome.set_NUM_PIGMENTS(QTDE_PIGMENTOS);
-        Chromosome.set_invalid_pigments(invalid_pigments);
-        for (int n = 0; n < QTDE_CROMOSSOMOS; n++) {
+    public void create_population() {
+        Chromosome.set_NUM_PIGMENTS(NUM_COLORANTS);
+        Chromosome.set_invalid_pigments(invalid_colorants);
+        for (int n = 0; n < NUM_CHROMOSOMES; n++) {
             gene[n] = new Chromosome();
             gene[n].initialize_weights();
         }
@@ -340,74 +356,74 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //----------------------------------------------------------------------------------------------
 
-    public void calculo_curva_espectral() {
-        double[][] a = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
-        double[][] b = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    public void spectral_curve_calculation() {
+        double[][] a = new double[NUM_COLORANTS][NUM_LAMBDA];
+        double[][] b = new double[NUM_COLORANTS][NUM_LAMBDA];
 
-        for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
+        for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
             Rp[lambda] /= 100;
             Rb[lambda] /= 100;
 
-            for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
+            for (int pigmento = 0; pigmento < NUM_COLORANTS; pigmento++) {
                 Rsp[pigmento][lambda] /= 100;
                 Rsb[pigmento][lambda] /= 100;
                 R_inf[pigmento][lambda] /= 100;
             }
         }
 
-        Rb = correcao_R(Rb);
-        Rp = correcao_R(Rp);
-        Rsp = correcao_R(Rsp);
-        Rsb = correcao_R(Rsb);
-        R_inf = correcao_R(R_inf);
+        Rb = R_correction(Rb);
+        Rp = R_correction(Rp);
+        Rsp = R_correction(Rsp);
+        Rsb = R_correction(Rsb);
+        R_inf = R_correction(R_inf);
 
         double arc_cotgh = 0;
 
-        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
-            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
+        for (int colorant = 0; colorant < NUM_COLORANTS; colorant++) {
+            for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) /*from 400 to 700 (steps of 10nm) = NUM_LAMBDA*/ {
 
                 //-------------calculando a e b com infinito----------------//
-                a[pigmento][lambda] = 0.5*(1/R_inf[pigmento][lambda] + R_inf[pigmento][lambda]);
-                b[pigmento][lambda] = Math.sqrt(a[pigmento][lambda]*a[pigmento][lambda] - 1);
+                a[colorant][lambda] = 0.5*(1/R_inf[colorant][lambda] + R_inf[colorant][lambda]);
+                b[colorant][lambda] = Math.sqrt(a[colorant][lambda]*a[colorant][lambda] - 1);
                 //--------------------------------------------------------//
 
                 /*
-                arc_cotgh = (1.0 - a[pigmento][lambda] * Rsp[pigmento][lambda]) /
-                        (b[pigmento][lambda] * Rsp[pigmento][lambda]);
+                arc_cotgh = (1.0 - a[colorant][lambda] * Rsp[colorant][lambda]) /
+                        (b[colorant][lambda] * Rsp[colorant][lambda]);
                  */
-                arc_cotgh = (1.0 - a[pigmento][lambda] * (Rsb[pigmento][lambda] + Rb[lambda]) + Rsb[pigmento][lambda]*Rb[lambda]) /
-                        (b[pigmento][lambda] * (Rsb[pigmento][lambda] - Rb[lambda]));
+                arc_cotgh = (1.0 - a[colorant][lambda] * (Rsb[colorant][lambda] + Rb[lambda]) + Rsb[colorant][lambda]*Rb[lambda]) /
+                        (b[colorant][lambda] * (Rsb[colorant][lambda] - Rb[lambda]));
                 //----------------------------------------------------------------------------------
 
                 arc_cotgh = arc_cotgh(arc_cotgh);
 
-                S[pigmento][lambda] = (1.0 / (b[pigmento][lambda] * ESPESSURA_AMOSTRA)) * arc_cotgh;
+                S[colorant][lambda] = (1.0 / (b[colorant][lambda] * SAMPLE_THICKNESS)) * arc_cotgh;
 
-                K[pigmento][lambda] = S[pigmento][lambda] * (a[pigmento][lambda] - 1.0);
+                K[colorant][lambda] = S[colorant][lambda] * (a[colorant][lambda] - 1.0);
 
-                if (Double.isNaN(K[pigmento][lambda]) || Double.isNaN(S[pigmento][lambda])) {
-                    invalid_pigments[pigmento] = true;
-                    K[pigmento][lambda] = 0;
-                    S[pigmento][lambda] = 0;
+                if (Double.isNaN(K[colorant][lambda]) || Double.isNaN(S[colorant][lambda])) {
+                    invalid_colorants[colorant] = true;
+                    K[colorant][lambda] = 0;
+                    S[colorant][lambda] = 0;
                 }
 
             }
         }
 
-        // O pigmento de silicone é inválido para se alterar
-        invalid_pigments[PIGMENTO_SILICONE] = true;
+        // Elastomer cannot be altered
+        invalid_colorants[ELASTOMER_GENE] = true;
 
-        // Itera por todos os pigmentos tirando o silicone fazendo K = (K - K0)/c
-        for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
-            if (invalid_pigments[pigmento]) continue;
-            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
-                /* se pigmento (de 0 a 8) multiplica pela concentração 1%, se for flocagem (de 9 a 19) multiplica pela concentração 2%*/
-                if (pigmento < 9) {
-                    S[pigmento][lambda] = (S[pigmento][lambda] - S[20][lambda])/0.0099;
-                    K[pigmento][lambda] = (K[pigmento][lambda] - K[20][lambda])/0.0099;
-                } else if (pigmento <= 19) {
-                    S[pigmento][lambda] = (S[pigmento][lambda] - S[20][lambda])/0.0196;
-                    K[pigmento][lambda] = (K[pigmento][lambda] - K[20][lambda])/0.0196;
+        // Iteration using all colorants (excludes elastomer),K = (K - K0)/c
+        for (int colorant = 0; colorant < NUM_COLORANTS; colorant++) {
+            if (invalid_colorants[colorant]) continue;
+            for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) /*de 400 a 700 de 10 em 10 = QTDE_LAMBDA*/ {
+                /* pigment (de 0 a 8) multiply 1%. Flockings (de 9 a 19) multiply 2% (concentration OF THE EXPERIMENT)*/
+                if (colorant < 9) {
+                    S[colorant][lambda] = (S[colorant][lambda] - S[20][lambda])/0.0099;
+                    K[colorant][lambda] = (K[colorant][lambda] - K[20][lambda])/0.0099;
+                } else if (colorant <= 19) {
+                    S[colorant][lambda] = (S[colorant][lambda] - S[20][lambda])/0.0196;
+                    K[colorant][lambda] = (K[colorant][lambda] - K[20][lambda])/0.0196;
                 }
             }
         }
@@ -428,18 +444,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //----------------------------------------------------------------------------------------------
     // calculo k e s por concentracao de pigmento
     public void calculo_k_e_s_mistura() {
-        for (int cromo = 0; cromo < QTDE_CROMOSSOMOS; cromo++) {
-            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
-                K_cromossomo[cromo][lambda] = 0;
-                S_cromossomo[cromo][lambda] = 0;
-                for (int pigmento = 0; pigmento < QTDE_PIGMENTOS; pigmento++) {
+        for (int cromo = 0; cromo < NUM_CHROMOSOMES; cromo++) {
+            for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) {
+                K_CHROMOSSOME[cromo][lambda] = 0;
+                S_CHROMOSOME[cromo][lambda] = 0;
+                for (int pigmento = 0; pigmento < NUM_COLORANTS; pigmento++) {
 
-                    if (pigmento == PIGMENTO_SILICONE) {
-                        K_cromossomo[cromo][lambda] += K[pigmento][lambda];
-                        S_cromossomo[cromo][lambda] += S[pigmento][lambda];
+                    if (pigmento == ELASTOMER_GENE) {
+                        K_CHROMOSSOME[cromo][lambda] += K[pigmento][lambda];
+                        S_CHROMOSOME[cromo][lambda] += S[pigmento][lambda];
                     } else {
-                        K_cromossomo[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
-                        S_cromossomo[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
+                        K_CHROMOSSOME[cromo][lambda] += K[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
+                        S_CHROMOSOME[cromo][lambda] += S[pigmento][lambda] * gene[cromo].weights[pigmento] * 0.00001;
                     }
                 }
 
@@ -453,25 +469,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public double calculate_R(int lambda, int cromossomo){
         double a, b, R;
-        double S = S_cromossomo[cromossomo][lambda];
-        double K = K_cromossomo[cromossomo][lambda];
+        double S = S_CHROMOSOME[cromossomo][lambda];
+        double K = K_CHROMOSSOME[cromossomo][lambda];
 
         a = 1 + K/S;
         b = Math.sqrt(a*a - 1);
 
-        if(chosen_background == "Preto Ideal"){
+        if(chosen_background == "Ideal black/Preto Ideal"){
             R = 1/(a+b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background == "Preto"){
+        else if(chosen_background == "Black/Preto"){
             R = (1 - Rp[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rp[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background == "Branco"){
+        else if(chosen_background == "White/Branco"){
             R = (1 - Rb[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rb[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
         else {
-            // R_inf[0] é o pigmento pele de espessura infinita
+            // R_inf[0] is light skin pigment at infinite optical thickness
             R = (1 - R_inf[0][lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - R_inf[0][lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
@@ -479,49 +495,52 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public void calculo_refletancia_cromossomo() {
+    public void chromosome_reflectance_calculation() {
         double K1 = 0.039;
         double K2 = 0.540;
-        double refracao = 1.415; //n
+        double elastomer_refraction_index = 1.415; //n
         double R;
 
-        for (int cromossomo = 0; cromossomo < QTDE_CROMOSSOMOS; cromossomo++) {
-            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
+        for (int chromosome = 0; chromosome < NUM_CHROMOSOMES; chromosome++) {
+            for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) {
 
-                R = calculate_R(lambda, cromossomo);
+                R = calculate_R(lambda, chromosome);
 
                 //R’ = (1 − k1)(1 − k2)R / (1 − k2R)
-                R_linha[cromossomo][lambda] = ((1 - K1) * (1 - K2) * R) /
+                corrected_R[chromosome][lambda] = ((1 - K1) * (1 - K2) * R) /
                         (1 - K2 * R);
             }
         }
     }
 
     //----------------------------------------------------------------------------------------------
-    public double[][] correcao_R(double[][] R) {
-        double K1 = 0.039;
-        double K2 = 0.540;
-        double[][] R_linha2 = new double[QTDE_PIGMENTOS][QTDE_LAMBDA];
+    //R_correction is the reflectance modified by boundary reflection corrections
+    public double[][] R_correction(double[][] R) {
+        double K1 = 0.039; /*the fraction of the incident light with externally specularly reflected
+                    on the front surface of the sample which can be calculated by Fresnel’s law*/
+        double K2 = 0.540; /*the fraction oflight internally diffusely reflected on the front
+                    surface of the sample*/
+        double[][] R_linha2 = new double[NUM_COLORANTS][NUM_LAMBDA];
 
-        for (int cromossomo = 0; cromossomo < QTDE_PIGMENTOS; cromossomo++) {
-            for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
+        for (int chromosome = 0; chromosome < NUM_COLORANTS; chromosome++) {
+            for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) {
 
                 //R’ = (1 − k1)(1 − k2)R / 1 − k2R --INVERTIDO, DESCOBRIR R A PARTIR DO R' MEDIDO
-                R_linha2[cromossomo][lambda] = R[cromossomo][lambda]/(1-K2-K1+(K2*R[cromossomo][lambda]));
+                R_linha2[chromosome][lambda] = R[chromosome][lambda]/(1-K2-K1+(K2*R[chromosome][lambda]));
             }
         }
         return R_linha2;
     }
 
     //----------------------------------------------------------------------------------------------
-    public double[] correcao_R(double[] R) {
+    public double[] R_correction(double[] R) {
         double K1 = 0.039;
         double K2 = 0.540;
-        double[] R_linha2 = new double[QTDE_LAMBDA];
+        double[] R_linha2 = new double[NUM_LAMBDA];
 
-        for (int lambda = 0; lambda < QTDE_LAMBDA; lambda++) {
+        for (int lambda = 0; lambda < NUM_LAMBDA; lambda++) {
 
-            //R’ = (1 − k1)(1 − k2)R / 1 − k2R --INVERTIDO, DESCOBRIR R A PARTIR DO R' MEDIDO
+            //R’ = (1 − k1)(1 − k2)R / 1 − k2R --Find R from R'
             //R_linha2[lambda] = R[lambda]/(1-K2-K1+(K2*R[lambda]));
             R_linha2[lambda] = R[lambda]/((1-K1)*(1-K2) + K2*R[lambda]);
         }
@@ -529,35 +548,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     //----------------------------------------------------------------------------------------------
-    public void cromossomo_para_LAB() {
-        for (int index = 0; index < QTDE_CROMOSSOMOS; index++) {
-            if (verifica_R_linha(index)) {
-                cores_LAB[index] = ColorTransformation.spectrumToLAB(
-                        R_linha[index], ColorTransformation.ILLUMINANT_D65_10_DEGREES
+    public void chromosome_to_LAB() {
+        for (int index = 0; index < NUM_CHROMOSOMES; index++) {
+            if (verify_corrected_R(index)) {
+                LAB_colors[index] = ColorTransformation.spectrumToLAB(
+                        corrected_R[index], ColorTransformation.ILLUMINANT_D65_10_DEGREES
                 );
-                cores_LAB_illA[index] = ColorTransformation.spectrumToLAB(
-                        R_linha[index], ColorTransformation.ILLUMINANT_A_10_DEGREES
+                LAB_colors_illuminantA[index] = ColorTransformation.spectrumToLAB(
+                        corrected_R[index], ColorTransformation.ILLUMINANT_A_10_DEGREES
                 );
             }
         }
     }
 
     //----------------------------------------------------------------------------------------------
-    public boolean verifica_R_linha(int index)
+    public boolean verify_corrected_R(int index)
     {
-        for (int i = 0; i < QTDE_LAMBDA; i++){
-            if (Double.isNaN(R_linha[index][i]))
+        for (int i = 0; i < NUM_LAMBDA; i++){
+            if (Double.isNaN(corrected_R[index][i]))
                 return false;
         }
         return true;
     }
 
     //----------------------------------------------------------------------------------------------
-    public void popular_variaveis() {
+    public void populate_variables() {
 
-        if (ESPECTROFOTOMETRO ) {
-            //------------ ESPECTROFOTOMETRO -----------------------//
-            // FUNDO BRANCO PIGMENTO PELE - concentração 1%
+        if (SPECTROPHOTOMETER) {
+            //------------ SPECTROPHOTOMETER -----------------------//
+            // WHITE BACKGROUND (Rsb). LIGHT SKIN PIGMENT - [1%]
             Rsb[0][0] = 22.362;
             Rsb[0][1] = 25.747;
             Rsb[0][2] = 26.865;
@@ -590,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[0][29] = 74.717;
             Rsb[0][30] = 75.721;
 
-            // FUNDO BRANCO PIGMENTO VERMELHO - concentração 1%
+            // WHITE BACKGROUND. RED PIGMENT - [1%]
             Rsb[1][0] = 3.803;
             Rsb[1][1] = 3.748;
             Rsb[1][2] = 3.722;
@@ -623,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[1][29] = 57.951;
             Rsb[1][30] = 57.048;
 
-            //FUNDO BRANCO PIGMENTO AMARELO - concentração 1%
+            //WHITE BACKGROUND. YELLOW PIGMENT - [1%]
             Rsb[2][0] = 4.527;
             Rsb[2][1] = 4.506;
             Rsb[2][2] = 4.485;
@@ -656,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[2][29] = 47.897;
             Rsb[2][30] = 47.669;
 
-            //FUNDO BRANCO PIGMENTO VERDE - concentração 1%
+            //WHITE BACKGROUND. GREEN PIGMENT - [1%]
             Rsb[3][0] = 4.929;
             Rsb[3][1] = 5.115;
             Rsb[3][2] = 5.373;
@@ -689,7 +708,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[3][29] = 4.068;
             Rsb[3][30] = 4.096;
 
-            //FUNDO BRANCO PIGMENTO MARROM - concentração 1%
+            //WHITE BACKGROUND. BROWN PIGMENT - [1%]
             Rsb[4][0] = 4.124;
             Rsb[4][1] = 4.136;
             Rsb[4][2] = 4.16;
@@ -722,7 +741,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[4][29] = 8.827;
             Rsb[4][30] = 8.813;
 
-            //      FUNDO BRANCO PIGMENTO AZUL - concentração 1%
+            //WHITE BACKGROUND. BLUE PIGMENT - [1%]
             Rsb[5][0] = 6.612;
             Rsb[5][1] = 7.392;
             Rsb[5][2] = 7.903;
@@ -755,7 +774,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[5][29] = 3.601;
             Rsb[5][30] = 3.669;
 
-            //        FUNDO BRANCO PIGMENTO SANGUE - concentração 1%
+            //WHITE BACKGROUND. BLOOD PIGMENT - [1%]
             Rsb[6][0] = 5.332;
             Rsb[6][1] = 5.081;
             Rsb[6][2] = 4.858;
@@ -788,7 +807,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[6][29] = 19.839;
             Rsb[6][30] = 19.892;
 
-            //        FUNDO BRANCO PIGMENTO BRANCO - concentração 1%
+            //WHITE BACKGROUND. WHITE PIGMENT - [1%]
             Rsb[7][0] = 49.238;
             Rsb[7][1] = 72.411;
             Rsb[7][2] = 83.834;
@@ -821,7 +840,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[7][29] = 90.019;
             Rsb[7][30] = 89.927;
 
-            //        FUNDO BRANCO PIGMENTO PRETO - concentração 1%
+            //WHITE BACKGROUND.  BLACK PIGMENT - [1%]
             Rsb[8][0] = 4.338;
             Rsb[8][1] = 4.29;
             Rsb[8][2] = 4.244;
@@ -854,9 +873,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[8][29] = 4.074;
             Rsb[8][30] = 4.108;
 
-            //         de 0 a 8 - concentração 1%
+            //         de 0 a 8 - [1%]
 
-            //        FUNDO BRANCO FLOCAGEM LARANJA - concentração 2%
+            //WHITE BACKGROUND. ORANGE FLOCKING - [2%]
             Rsb[9][0] = 7.7;
             Rsb[9][1] = 7.27;
             Rsb[9][2] = 6.813;
@@ -890,7 +909,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[9][30] = 47.491;
 
 
-            //        FUNDO BRANCO FLOCAGEM PELE - concentração 2%
+            //WHITE BACKGROUND. SKIN FLOCKING - [2%]
             Rsb[10][0] = 20.687;
             Rsb[10][1] = 25.017;
             Rsb[10][2] = 27.003;
@@ -923,7 +942,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[10][29] = 48.233;
             Rsb[10][30] = 48.68;
 
-            //        FUNDO BRANCO FLOCAGEM PRETO - concentração 2%
+            //WHITE BACKGROUND. BLACK FLOCKING - [2%]
             Rsb[11][0] = 6.641;
             Rsb[11][1] = 6.48;
             Rsb[11][2] = 6.342;
@@ -956,7 +975,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[11][29] = 24.963;
             Rsb[11][30] = 30.15;
 
-            //        FUNDO BRANCO FLOCAGEM OURO - concentração 2%
+            //WHITE BACKGROUND. GOLD FLOCKING - [2%]
             Rsb[12][0] = 12.917;
             Rsb[12][1] = 14.987;
             Rsb[12][2] = 16.105;
@@ -989,7 +1008,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[12][29] = 47.42;
             Rsb[12][30] = 47.376;
 
-            //        FUNDO BRANCO FLOCAGEM VERMELHO - concentração 2%
+            //WHITE BACKGROUND. RED FLOCKING - [2%]
             Rsb[13][0] = 12.917;
             Rsb[13][1] = 14.987;
             Rsb[13][2] = 16.105;
@@ -1022,7 +1041,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[13][29] = 47.42;
             Rsb[13][30] = 47.376;
 
-            //        FUNDO BRANCO FLOCAGEM ROXO - concentração 2%
+            //WHITE BACKGROUND. PURPLE FLOCKING - [2%]
             Rsb[14][0] = 22.152;
             Rsb[14][1] = 26.267;
             Rsb[14][2] = 28.285;
@@ -1055,7 +1074,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[14][29] = 45.342;
             Rsb[14][30] = 46.131;
 
-            //        FUNDO BRANCO FLOCAGEM VERDE - concentração 2%
+            //WHITE BACKGROUND. GREEN FLOCKING - [2%]
             Rsb[15][0] = 6.129;
             Rsb[15][1] = 6.022;
             Rsb[15][2] = 5.941;
@@ -1088,7 +1107,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[15][29] = 6.795;
             Rsb[15][30] = 8.648;
 
-            //        FUNDO BRANCO FLOCAGEM BRANCO - concentração 2%
+            //WHITE BACKGROUND. WHITE FLOCKING - [2%]
             Rsb[16][0] = 53.96;
             Rsb[16][1] = 59.264;
             Rsb[16][2] = 62.469;
@@ -1121,7 +1140,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[16][29] = 66.396;
             Rsb[16][30] = 66.324;
 
-            //        FUNDO BRANCO FLOCAGEM MARROM CLARO - concentração 2%
+            //WHITE BACKGROUND. LIGHT BROWN FLOCKING - [2%]
             Rsb[17][0] = 6.076;
             Rsb[17][1] = 6.153;
             Rsb[17][2] = 6.182;
@@ -1154,7 +1173,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[17][29] = 41.558;
             Rsb[17][30] = 43.806;
 
-            //        FUNDO BRANCO FLOCAGEM MARROM ESCURO - concentração 2%
+            //WHITE BACKGROUND. DARK BROWN FLOCKING - [2%]
             Rsb[18][0] = 6.076;
             Rsb[18][1] = 6.153;
             Rsb[18][2] = 6.182;
@@ -1187,7 +1206,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[18][29] = 41.558;
             Rsb[18][30] = 43.806;
 
-            //        FUNDO BRANCO FLOCAGEM HAVANA - concentração 2%
+            //WHITE BACKGROUND. HAVANA FLOCKING- [2%]
             Rsb[19][0] = 9.725;
             Rsb[19][1] = 10.288;
             Rsb[19][2] = 10.471;
@@ -1222,7 +1241,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             //         de 9 a 19 concentração 2%
 
-            //        FUNDO BRANCO SILICONE
+            //WHITE BACKGROUND. ELASTOMER
             Rsb[20][0] = 34.974;
             Rsb[20][1] = 45.356;
             Rsb[20][2] = 50.992;
@@ -1255,7 +1274,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsb[20][29] = 48.651;
             Rsb[20][30] = 48.546;
 
-            //        FUNDO PRETO PIGMENTO PELE
+            //BLACK BACKGROUND (Rsp). LIGHT SKIN PIGMENT
             Rsp[0][0] = 22.26;
             Rsp[0][1] = 25.609;
             Rsp[0][2] = 26.714;
@@ -1288,7 +1307,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[0][29] = 72.746;
             Rsp[0][30] = 73.441;
 
-            //        FUNDO PRETO PIGMENTO VERMELHO
+            //BLACK BACKGROUND.  RED PIGMENT
             Rsp[1][0] = 3.742;
             Rsp[1][1] = 3.674;
             Rsp[1][2] = 3.643;
@@ -1321,7 +1340,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[1][29] = 32.006;
             Rsp[1][30] = 30.257;
 
-            //        FUNDO PRETO PIGMENTO AMARELO
+            //BLACK BACKGROUND.  YELLOW PIGMENT
             Rsp[2][0] = 4.524;
             Rsp[2][1] = 4.49;
             Rsp[2][2] = 4.469;
@@ -1354,7 +1373,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[2][29] = 19.829;
             Rsp[2][30] = 19.434;
 
-            //        FUNDO PRETO PIGMENTO VERDE
+            //BLACK BACKGROUND.  GREEN  PIGMENT
             Rsp[3][0] = 5.053;
             Rsp[3][1] = 5.237;
             Rsp[3][2] = 5.504;
@@ -1387,7 +1406,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[3][29] = 4.205;
             Rsp[3][30] = 4.234;
 
-            //        FUNDO PRETO PIGMENTO MARROM
+            //BLACK BACKGROUND.  BROWN PIGMENT
             Rsp[4][0] = 4.136;
             Rsp[4][1] = 4.143;
             Rsp[4][2] = 4.168;
@@ -1420,7 +1439,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[4][29] = 8.897;
             Rsp[4][30] = 8.881;
 
-            //        FUNDO PRETO PIGMENTO AZUL
+            //BLACK BACKGROUND.  BLUE PIGMENT
             Rsp[5][0] = 6.425;
             Rsp[5][1] = 7.173;
             Rsp[5][2] = 7.626;
@@ -1453,7 +1472,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[5][29] = 3.508;
             Rsp[5][30] = 3.577;
 
-            //        FUNDO PRETO PIGMENTO SANGUE
+            //BLACK BACKGROUND.  BLOOD PIGMENT
             Rsp[6][0] = 5.451;
             Rsp[6][1] = 5.204;
             Rsp[6][2] = 4.984;
@@ -1486,7 +1505,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[6][29] = 18.707;
             Rsp[6][30] = 18.611;
 
-            //        FUNDO PRETO PIGMENTO BRANCO
+            //BLACK BACKGROUND.  WHITE PIGMENT
             Rsp[7][0] = 48.296;
             Rsp[7][1] = 70.88;
             Rsp[7][2] = 81.791;
@@ -1519,7 +1538,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[7][29] = 83.775;
             Rsp[7][30] = 83.508;
 
-            //        FUNDO PRETO PIGMENTO PRETO
+            //BLACK BACKGROUND.  BLACK PIGMENT
             Rsp[8][0] = 4.439;
             Rsp[8][1] = 4.39;
             Rsp[8][2] = 4.34;
@@ -1552,7 +1571,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[8][29] = 4.18;
             Rsp[8][30] = 4.211;
 
-            //        FUNDO PRETO FLOCAGEM LARANJA
+            //BLACK BACKGROUND.  ORANGE FLOCKING
             Rsp[9][0] = 7.505;
             Rsp[9][1] = 6.997;
             Rsp[9][2] = 6.534;
@@ -1586,7 +1605,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[9][30] = 14.713;
 
 
-            //        FUNDO PRETO FLOCAGEM PELE
+            //BLACK BACKGROUND.  SKIN FLOCKING
             Rsp[10][0] = 11.582;
             Rsp[10][1] = 11.249;
             Rsp[10][2] = 10.876;
@@ -1619,7 +1638,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[10][29] = 7.556;
             Rsp[10][30] = 7.512;
 
-            //        FUNDO PRETO FLOCAGEM PRETO
+            //BLACK BACKGROUND. BLACK FLOCKING
             Rsp[11][0] = 11.582;
             Rsp[11][1] = 11.249;
             Rsp[11][2] = 10.876;
@@ -1652,7 +1671,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[11][29] = 7.556;
             Rsp[11][30] = 7.512;
 
-            //        FUNDO PRETO FLOCAGEM OURO
+            //BLACK BACKGROUND.  GOLD FLOCKING
             Rsp[12][0] = 8.35;
             Rsp[12][1] = 8.213;
             Rsp[12][2] = 8.063;
@@ -1685,7 +1704,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[12][29] = 6.769;
             Rsp[12][30] = 6.699;
 
-            //        FUNDO PRETO FLOCAGEM VERMELHO
+            //BLACK BACKGROUND.  RED FLOCKING
             Rsp[13][0] = 6.831;
             Rsp[13][1] = 6.669;
             Rsp[13][2] = 6.5;
@@ -1718,7 +1737,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[13][29] = 11.601;
             Rsp[13][30] = 11.452;
 
-            //        FUNDO PRETO FLOCAGEM ROXO
+            //BLACK BACKGROUND.  PURPLE FLOCKING
             Rsp[14][0] = 13.526;
             Rsp[14][1] = 13.302;
             Rsp[14][2] = 12.941;
@@ -1751,7 +1770,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[14][29] = 7.389;
             Rsp[14][30] = 7.334;
 
-            //        FUNDO PRETO FLOCAGEM VERDE
+            //BLACK BACKGROUND.  GREEN FLOCKING
             Rsp[15][0] = 13.526;
             Rsp[15][1] = 13.302;
             Rsp[15][2] = 12.941;
@@ -1784,7 +1803,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[15][29] = 7.389;
             Rsp[15][30] = 7.334;
 
-            //        FUNDO PRETO FLOCAGEM BRANCO
+            //BLACK BACKGROUND.  WHITE FLOCKING
             Rsp[16][0] = 49.499;
             Rsp[16][1] = 50.825;
             Rsp[16][2] = 51.397;
@@ -1817,7 +1836,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[16][29] = 48.875;
             Rsp[16][30] = 48.819;
 
-            //        FUNDO PRETO FLOCAGEM MARROM CLARO
+            //BLACK BACKGROUND. LIGHT BROWN FLOCKING
             Rsp[17][0] = 5.597;
             Rsp[17][1] = 5.439;
             Rsp[17][2] = 5.329;
@@ -1850,7 +1869,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[17][29] = 8.594;
             Rsp[17][30] = 8.7;
 
-            //        FUNDO PRETO FLOCAGEM MARROM ESCURO
+            //BLACK BACKGROUND. DARK BROWN FLOCKING
             Rsp[18][0] = 6.706;
             Rsp[18][1] = 6.472;
             Rsp[18][2] = 6.255;
@@ -1883,7 +1902,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[18][29] = 9.278;
             Rsp[18][30] = 9.534;
 
-            //        FUNDO PRETO FLOCAGEM HAVANA
+            //BLACK BACKGROUND.  HAVANA FLOCKING
             Rsp[19][0] = 8.22;
             Rsp[19][1] = 8.048;
             Rsp[19][2] = 7.861;
@@ -1916,7 +1935,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Rsp[19][29] = 6.507;
             Rsp[19][30] = 6.693;
 
-            //        FUNDO PRETO SILICONE
+            //BLACK BACKGROUND. ELASTOMER
             Rsp[20][0] = 20.718;
             Rsp[20][1] = 21.197;
             Rsp[20][2] = 20.951;
@@ -3321,7 +3340,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             R_inf[20][30] = 72.23;
 
             Rsb[0][0] = 2.95;
-            //        Rsb[0][0] = 79.008; -- teste valores provessor
+            //        Rsb[0][0] = 79.008; -- teste valores professor
             Rsb[0][1] = 2.36;
             Rsb[0][2] = 1.66;
             Rsb[0][3] = 1.19;

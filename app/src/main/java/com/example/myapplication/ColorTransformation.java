@@ -4,7 +4,7 @@ package com.example.myapplication;
  * This class implements conversions between RGB, CIE XYZ and CIELAB color
  * spaces.
  */
-public class ColorTransformation {
+class ColorTransformation {
 
     static int ILLUMINANT_D65_10_DEGREES = 0;
     static int ILLUMINANT_A_10_DEGREES = 1;
@@ -14,7 +14,7 @@ public class ColorTransformation {
      * (10-degree 1964 CIE suppl. std. observer)
      * de 400 a 700 de 10 em 10 = 31
      */
-    static double[] Px = {
+    private static double[] Px = {
             0.01911d, 0.08474d, 0.20449d, 0.31468d,
             0.38373d, 0.37070d, 0.30227d, 0.19562d,
             0.08051d, 0.01617d, 0.00382d, 0.03747d,
@@ -29,7 +29,7 @@ public class ColorTransformation {
      * y color matching function tabulated at 10-nm intervals.
      * (10-degree 1964 CIE suppl. std. observer)
      */
-    static double[] Py = {
+    private static double[] Py = {
             0.00200d, 0.00876d, 0.02139d, 0.03868d,
             0.06208d, 0.08946d, 0.12820d, 0.18519d,
             0.25359d, 0.33913d, 0.46078d, 0.60674d,
@@ -44,7 +44,7 @@ public class ColorTransformation {
      * z color matching function tabulated at 10-nm intervals.
      * (10-degree 1964 CIE suppl. std. observer)
      */
-    static double[] Pz = {
+    private static double[] Pz = {
             0.08601d, 0.38937d, 0.97254d, 1.55348d,
             1.96728d, 1.99480d, 1.74537d, 1.31756d,
             0.77213d, 0.41525d, 0.21850d, 0.11204d,
@@ -56,9 +56,9 @@ public class ColorTransformation {
     };
 
 
-    static double[][] whitePointReference = {{0.948242, 1, 1.073955},{1.111493, 1, 0.35207}};
+    private static double[][] whitePointReference = {{0.948242, 1, 1.073955},{1.111493, 1, 0.35207}};
 
-    static double[][] spectralDensity = {
+    private static double[][] spectralDensity = {
             {
                     82.78, 91.51, 93.45, 86.70, 104.88,
                     117.03, 117.83, 114.87, 115.94, 108.82,
@@ -79,7 +79,7 @@ public class ColorTransformation {
             }
     };
 
-    static double[][][]  toD65Illuminant = {
+    private static double[][][]  toD65Illuminant = {
             {
                     {1.0000, 0.0000, 0.0000},
                     {0.0000, 1.0000, 0.0000},
@@ -92,7 +92,7 @@ public class ColorTransformation {
             }
     };
 
-    static double[][][] fromD65Illuminant = {
+    private static double[][][] fromD65Illuminant = {
             {
                     {1.0000, 0.0000, 0.0000},
                     {0.0000, 1.0000, 0.0000},
@@ -105,13 +105,13 @@ public class ColorTransformation {
             }
     };
 
-    static double[] spectralReference = {1161.9469, 1137.80110};
+    private static double[] spectralReference = {1161.9469, 1137.80110};
 
     /**
      * Computes XYZ coordinates for a spectrum.
      * @param data an array of 31 spectrum data points.
      */
-    static XYZ spectrumToXYZ(double[] data, int illuminant) {
+    private static XYZ spectrumToXYZ(double[] data, int illuminant) {
         double X = 0.f;
         double Y = 0.f;
         double Z = 0.f;
@@ -138,7 +138,7 @@ public class ColorTransformation {
     /**
      * Converts RGB to XYZ data using the default illuminant (D65)
      */
-    static XYZ RGBtoXYZ(int r_int, int g_int, int b_int) {
+    private static XYZ RGBtoXYZ(int r_int, int g_int, int b_int) {
         double r = r_int/255.0;
         double g = g_int/255.0;
         double b = b_int/255.0;
@@ -164,14 +164,14 @@ public class ColorTransformation {
         return XYZtoLAB(RGBtoXYZ(r_int, g_int, b_int));
     }
 
-    static double f(double x){
+    private static double f(double x){
         return x > 0.008856 ? Math.pow(x, 0.333333) : 7.787*x + 0.1379;
     }
 
     /**
      * Converts from XYZ to LAB internally.
      */
-    static LAB XYZtoLAB(XYZ xyz) {
+    private static LAB XYZtoLAB(XYZ xyz) {
         double fx, fy, fz;
 
         int illuminant = xyz.getIlluminant();
@@ -187,7 +187,7 @@ public class ColorTransformation {
         return new LAB(L, a, b, illuminant);
     }
 
-    static XYZ LABtoXYZ(LAB lab){
+    private static XYZ LABtoXYZ(LAB lab){
         double fx, fy, fz;
 
         int illuminant = lab.getIlluminant();
@@ -210,7 +210,7 @@ public class ColorTransformation {
      *
      * Could have used Bradford Transform
      */
-    static XYZ convertIlluminantXYZ(XYZ xyz, int illuminantTo) {
+    private static XYZ convertIlluminantXYZ(XYZ xyz, int illuminantTo) {
         int illuminantFrom = xyz.getIlluminant();
 
         double xFrom = xyz.getX();

@@ -346,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         + Math.pow(LAB_colors_illuminantA[chromosome].getA() - target_illA.getA(), 2)
                         + Math.pow(LAB_colors_illuminantA[chromosome].getB() - target_illA.getB(), 2));
 
-                fitting[chromosome] = useIlluminantA ? 1 / (fittingA + fittingD65 + 0.00001) : 1 / (fittingD65 + 0.00001);
+                fitting[chromosome] = useIlluminantA ? 1 / (fittingA*fittingA + fittingD65*fittingD65 + 0.00001) : 1 / (fittingD65 + 0.00001);
                 fitting_D65[chromosome] = fittingD65;
                 fittingIlA[chromosome] = fittingA;
             }

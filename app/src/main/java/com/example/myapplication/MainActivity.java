@@ -132,6 +132,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         chosen_background = backgrounds[0];
     }
 
+    /**
+     * Called when the user clicks the Clear button
+     */
+    public void clearTexts(View view) {
+        edit_a.setText("");
+        edit_b.setText("");
+        edit_L.setText("");
+        edit_grams.setText("");
+        edit_prosthesis.setText("");
+    }
 
     /**
      * Called when the user taps the Send button

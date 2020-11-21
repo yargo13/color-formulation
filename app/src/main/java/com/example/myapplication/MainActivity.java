@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     Chromosome[] gene = new Chromosome[NUM_CHROMOSOMES];
     int[] top_chromosomes = new int[NUM_OF_TOP_CHROMOSOMES];
     double[] top_fitting = new double[NUM_OF_TOP_CHROMOSOMES];
+    double[] top_fitting_D65 = new double[NUM_OF_TOP_CHROMOSOMES];
+    double[] top_fitting_IlA = new double[NUM_OF_TOP_CHROMOSOMES];
 
     double[][] R_inf = new double[NUM_COLORANTS][NUM_LAMBDA];
     double[][] Rsp = new double[NUM_COLORANTS][NUM_LAMBDA];
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         double grams_pigment;
         for (int i = 0; i< NUM_OF_TOP_CHROMOSOMES; i++){
             //text_pigments += "Option/Opção "+(i+1)+" (ΔEab "+String.format("%.2f", 1/top_fitting[i])+" Fitting "+String.format("%.2f", top_fitting[i])+"):\n";
-            text_pigments.append("Option/Opção ").append(i + 1).append(":\nΔE*D65 = ").append(String.format("%.2f", fitting_D65[i])).append("; ΔE*IlA = ").append(String.format("%.2f", fittingIlA[i]));
+            text_pigments.append("Option/Opção ").append(i + 1).append(":\nΔE*D65 = ").append(String.format("%.2f", top_fitting_D65[i])).append("; ΔE*IlA = ").append(String.format("%.2f", top_fitting_IlA[i]));
             text_pigments.append("; Fitting = ").append(String.format("%.2f", top_fitting[i])).append("\n");
             for (int pigment = 0; pigment< NUM_COLORANTS; pigment++){
                 if (pigment == ELASTOMER_GENE) continue;
@@ -213,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             }
             top_fitting[n] = fitting[top_chromosomes[n]];
+            top_fitting_D65[n] = fitting_D65[top_chromosomes[n]];
+            top_fitting_IlA[n] = fittingIlA[top_chromosomes[n]];
             fitting[top_chromosomes[n]] = 0;
         }
     }

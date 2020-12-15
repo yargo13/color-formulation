@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.color_formulation;
 
 public class XYZ {
     protected double X, Y, Z;

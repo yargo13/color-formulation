@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.color_formulation;
 
 /**
  * This class implements conversions between RGB, CIE XYZ and CIELAB color

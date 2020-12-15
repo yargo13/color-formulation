@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.color_formulation;
 
 import android.content.Context;
 

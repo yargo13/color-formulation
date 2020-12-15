@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.color_formulation;
 
 public class LAB {
     protected double L, A, B;

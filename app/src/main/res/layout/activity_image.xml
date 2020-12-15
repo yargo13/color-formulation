@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ImageActivity">
 
-    <com.example.myapplication.DrawView
+    <com.example.color_formulation.DrawView
         android:id="@+id/drawView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"

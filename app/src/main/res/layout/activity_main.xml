@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:onClick="selectChromosomes"
-        android:text="@string/select_imagem"
+        android:text="@string/select_image"
         app:layout_constraintEnd_toEndOf="@+id/grams_prosthesis"
         app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintStart_toStartOf="@+id/grams_prosthesis"

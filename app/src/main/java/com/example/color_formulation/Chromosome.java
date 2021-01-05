@@ -6,11 +6,11 @@ public class Chromosome {
     static protected int NUM_PIGMENTS;
     static protected boolean[] invalid_pigments;
     static public String[] pigment_names = {
-            "Pele", "Vermelho", "Amarelo", "Verde", "Marrom", "Azul", "Sangue",
-            "Branco", "Preto", "Flocagem Laranja", "Flocagem Pele", "Flocagem Preto",
-            "Flocagem Ouro", "Flocagem Vermelho", "Flocagem Roxo", "Flocagem Verde",
-            "Flocagem Branco", "Flocagem Marrom Claro", "Flocagem Marrom Escuro",
-            "Flocagem Havana", "Apenas Silicone"
+            "Light skin/Pele clara", "Red/Vermelho", "Yellow/Amarelo", "Green/Verde", "Brown/Marrom", "Blue/Azul", "Blood/Sangue",
+            "White/Branco", "Black/Preto", "Orange flocking/Flocagem Laranja", "Skin flocking/Flocagem Pele", "Black flocking/Flocagem Preto",
+            "Gold flocking/Flocagem Ouro", "Red flocking/Flocagem Vermelho", "Purple flocking/Flocagem Roxo", "Green flocking/Flocagem Verde",
+            "White flocking/Flocagem Branco", "Light brown flocking/Flocagem Marrom Claro", "Dark brown flocking//Flocagem Marrom Escuro",
+            "Havana flocking/Flocagem Havana", "Only elastomer/Apenas Silicone"
     };
     final static public int NUM_BITS = 11;
     public int[] weights;

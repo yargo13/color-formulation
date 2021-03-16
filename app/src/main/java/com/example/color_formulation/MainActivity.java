@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private String[] backgrounds = {"" +
             "Ideal black/Preto Ideal", "Black/Preto", "White/Branco", "Light Skin/Pele clara"};
-    private String chosen_background;
+    private int chosen_background;
 
     private static final int GALLERY_REQUEST_CODE = 1234;
     private static final int LAB_REQUEST_CODE = 1235;
@@ -124,12 +124,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-        chosen_background = backgrounds[position];
+        chosen_background = position;
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-        chosen_background = backgrounds[0];
+        chosen_background = 0;
     }
 
     /**
@@ -148,8 +148,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      */
     public void selectChromosomes(View view) {
         startTime = System.nanoTime();
-
         SpectralVariables.populateVariables(SPECTROPHOTOMETER, Rsb, Rb, Rsp, Rp, R_inf);
+        Chromosome.resetInvalidPigments();
         spectral_curve_calculation();
         create_population();
 
@@ -486,17 +486,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         a = 1 + K/S;
         b = Math.sqrt(a*a - 1);
 
-        if(chosen_background.equals("Ideal black/Preto Ideal")){
+        // Ideal black
+        if(chosen_background == 0 ){
             R = 1/(a+b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background.equals("Black/Preto")){
+        // Black
+        else if(chosen_background == 1){
             R = (1 - Rp[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rp[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
-        else if(chosen_background.equals("White/Branco")){
+        // White
+        else if(chosen_background == 2){
             R = (1 - Rb[lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/
                     (a - Rb[lambda] + b*cotgh(b*S*thickness_prosthesis));
         }
+        // Light skin
         else {
             // R_inf[0] is light skin pigment at infinite optical thickness
             R = (1 - R_inf[0][lambda]*(a - b*cotgh(b*S*thickness_prosthesis)))/

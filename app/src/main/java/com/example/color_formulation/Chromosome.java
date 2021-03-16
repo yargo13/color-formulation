@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Chromosome {
     static protected int NUM_PIGMENTS;
-    static protected boolean[] invalid_pigments;
+    static protected boolean[] invalid_pigments = new boolean[NUM_PIGMENTS];
     static public String[] pigment_names = {
             "Light skin/Pele clara", "Red/Vermelho", "Yellow/Amarelo", "Green/Verde", "Brown/Marrom", "Blue/Azul", "Blood/Sangue",
             "White/Branco", "Black/Preto", "Orange flocking/Flocagem Laranja", "Skin flocking/Flocagem Pele", "Black flocking/Flocagem Preto",
@@ -17,6 +17,10 @@ public class Chromosome {
 
     static void set_NUM_PIGMENTS(int NUM_PIGMENTS){
         Chromosome.NUM_PIGMENTS = NUM_PIGMENTS;
+    }
+
+    static void resetInvalidPigments() {
+        Arrays.fill(invalid_pigments, false);
     }
 
     static void set_invalid_pigments(boolean[] invalid_pigments){

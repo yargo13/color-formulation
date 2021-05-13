@@ -148,10 +148,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      */
     public void selectChromosomes(View view) {
         startTime = System.nanoTime();
-        SpectralVariables.populateVariables(SPECTROPHOTOMETER, Rsb, Rb, Rsp, Rp, R_inf);
-        Chromosome.resetInvalidPigments();
-        spectral_curve_calculation();
-        create_population();
 
         double target_L = Double.parseDouble(edit_L.getText().toString());
         double target_a = Double.parseDouble(edit_a.getText().toString());
@@ -162,6 +158,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         );
         grams_prosthesis = Double.parseDouble(edit_grams.getText().toString());
         thickness_prosthesis = Double.parseDouble(edit_prosthesis.getText().toString());
+
+        SpectralVariables.populateVariables(SPECTROPHOTOMETER, Rsb, Rb, Rsp, Rp, R_inf);
+        Chromosome.resetInvalidPigments();
+        spectral_curve_calculation();
+        create_population();
 
         iterateCromossomes(false);
 
@@ -187,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             text_pigments.append("; Fitting = ").append(String.format("%.2f", top_fitting[i])).append("\n");
             for (int pigment = 0; pigment< NUM_COLORANTS; pigment++){
                 if (pigment == ELASTOMER_GENE) continue;
-                grams_pigment = gene[top_chromosomes[i]].weights[pigment]*0.00001*grams_prosthesis;
+                grams_pigment = gene[top_chromosomes[i]].getGrams(pigment);
                 if (grams_pigment < 0.01) continue;
                 text_pigments.append(Chromosome.pigment_names[pigment]);
                 text_pigments.append(": ");
@@ -279,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         int index_new_gene = 0;
         Chromosome[] genes_novo = new Chromosome[NUM_CHROMOSOMES +1];
         for (int i = 0; i< NUM_CHROMOSOMES +1; i++){
-            genes_novo[i] = new Chromosome();
+            genes_novo[i] = new Chromosome(grams_prosthesis);
         }
 
         // mean fitting calculation
@@ -360,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Chromosome.set_NUM_PIGMENTS(NUM_COLORANTS);
         Chromosome.set_invalid_pigments(invalid_colorants);
         for (int n = 0; n < NUM_CHROMOSOMES; n++) {
-            gene[n] = new Chromosome();
+            gene[n] = new Chromosome(grams_prosthesis);
             gene[n].initialize_weights();
         }
     }

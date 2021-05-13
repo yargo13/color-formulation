@@ -14,6 +14,8 @@ public class Chromosome {
     };
     final static public int NUM_BITS = 11;
     public int[] weights;
+    // Factor when converting from weight percentage to grams
+    protected double conversion_factor;
 
     static void set_NUM_PIGMENTS(int NUM_PIGMENTS){
         Chromosome.NUM_PIGMENTS = NUM_PIGMENTS;
@@ -27,26 +29,48 @@ public class Chromosome {
         Chromosome.invalid_pigments = invalid_pigments.clone();
     }
 
-    public Chromosome(){
+    public Chromosome(double grams_prosthesis){
         this.weights = new int[NUM_PIGMENTS];
+        this.conversion_factor = 0.00001*grams_prosthesis;
     }
 
     public void initialize_weights(){
         int sum = 0;
         Arrays.fill(weights, 0);
-        for(int i=0; i<NUM_PIGMENTS; i++){
-            if (invalid_pigments[i]) continue;
+        for(int pigment=0; pigment<NUM_PIGMENTS; pigment++){
+            if (invalid_pigments[pigment]) continue;
             // We will use 11 bits for each chromosome, so that the value for each pigment is from
             // 0 to 2047 => 0.00000 to 0.02047 in steps of 0.00001 considering weight percentage
-            this.weights[i] = (int) (Math.random()*Math.pow(2, NUM_BITS));
-            sum += this.weights[i];
+            this.weights[pigment] = (int) (Math.random()*Math.pow(2, NUM_BITS));
+            sum += this.weights[pigment];
         }
+        // Normalize weights if the sum is equivalent to more than 3% weight percentage
         if (sum >= 3000) {
-            for (int i=0; i<NUM_PIGMENTS; i++){
-                this.weights[i] = (this.weights[i]* (int) (Math.random()*3000))/sum;
+            for (int pigment=0; pigment<NUM_PIGMENTS; pigment++){
+                this.weights[pigment] = (this.weights[pigment]* (int) (Math.random()*3000))/sum;
             }
         }
+        // For all pigments with final mass of less than 0.01g, zeroes their weights
+        for (int pigment=0; pigment<NUM_PIGMENTS; pigment++){
+            if (!isValidPigmentWeight(pigment)) weights[pigment] = 0;
+        }
 
+    }
+
+    public double getGrams(int pigment) {
+        return this.weights[pigment]*this.conversion_factor;
+    }
+
+    private boolean isValidPigmentWeight(int pigment) {
+        // Returns true if the weight for a given pigment corresponds to a mass of more than 0.01g
+        if (getGrams(pigment) > 0.01) return true;
+        return false;
+    }
+
+    private boolean isValidWeight(double weight) {
+        // Returns true if a given weight corresponds to a mass of more than 0.01g
+        if (weight*this.conversion_factor > 0.01) return true;
+        return false;
     }
 
     static void crossover(Chromosome c1, Chromosome c2, Chromosome new_c1, Chromosome new_c2){
@@ -70,18 +94,24 @@ public class Chromosome {
 
 
     public void mutate(){
-        boolean is_pigment_invalid = true;
+        boolean is_new_weight_invalid = true;
         int point_mutation = 0;
         int pigment = 0;
         int bit_pigment = 0;
-        while (is_pigment_invalid) {
+        int new_weight = 0;
+
+        while (is_new_weight_invalid) {
             point_mutation = (int) (Math.random()*(NUM_BITS*NUM_PIGMENTS-1));
             pigment = point_mutation/NUM_BITS;
             bit_pigment = NUM_BITS-(point_mutation%NUM_BITS + 1);
-            is_pigment_invalid = invalid_pigments[pigment];
+            if(invalid_pigments[pigment]) continue;
+
+            new_weight = this.weights[pigment] ^ (1 << bit_pigment);
+            if(isValidWeight(new_weight)) is_new_weight_invalid = false;
+
         }
 
-        this.weights[pigment] = this.weights[pigment] ^ (1 << bit_pigment);
+        this.weights[pigment] = new_weight;
     }
 
 }

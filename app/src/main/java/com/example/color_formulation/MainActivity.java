@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             for (int pigment = 0; pigment< NUM_COLORANTS; pigment++){
                 if (pigment == ELASTOMER_GENE) continue;
                 grams_pigment = gene[top_chromosomes[i]].getGrams(pigment);
-                if (grams_pigment == 0) continue;
+                if (grams_pigment <= Chromosome.MIN_WEIGHT) continue;
                 text_pigments.append(Chromosome.pigment_names[pigment]);
                 text_pigments.append(": ");
                 text_pigments.append(String.format(Locale.getDefault(), "%.2f", grams_pigment));

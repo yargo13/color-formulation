@@ -13,6 +13,8 @@ public class Chromosome {
             "Havana flocking/Flocagem Havana", "Only elastomer/Apenas Silicone"
     };
     final static public int NUM_BITS = 11;
+    // Minimum weight of 0.01g
+    final static public double MIN_WEIGHT = 0.01;
     public int[] weights;
     // Factor when converting from weight percentage to grams
     protected double conversion_factor;
@@ -63,13 +65,13 @@ public class Chromosome {
 
     private boolean isValidPigmentWeight(int pigment) {
         // Returns true if the weight for a given pigment corresponds to a mass of more than 0.01g
-        if (getGrams(pigment) > 0.01) return true;
+        if (getGrams(pigment) > MIN_WEIGHT) return true;
         return false;
     }
 
     private boolean isValidWeight(double weight) {
         // Returns true if a given weight corresponds to a mass of more than 0.01g
-        if (weight*this.conversion_factor > 0.01) return true;
+        if (weight*this.conversion_factor > MIN_WEIGHT) return true;
         return false;
     }
 
